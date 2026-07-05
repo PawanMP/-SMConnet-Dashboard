@@ -320,9 +320,265 @@
       .stat-grid { grid-template-columns: 1fr; }
       .platform-grid { grid-template-columns: 1fr; }
     }
+
+    /* ── Login screen styling ── */
+    #login-container {
+      display: none;
+      width: 100%;
+      min-height: 100vh;
+      background: radial-gradient(circle at 10% 20%, rgb(18, 16, 33) 0%, rgb(32, 28, 48) 90%);
+      align-items: center;
+      justify-content: center;
+      position: fixed;
+      inset: 0;
+      z-index: 99999;
+      font-family: inherit;
+    }
+    
+    .login-card {
+      background: rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      padding: 40px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+      animation: loginFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      color: #fff;
+    }
+    
+    @keyframes loginFadeIn {
+      from { opacity: 0; transform: translateY(20px) scale(0.96); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    
+    .login-logo {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+    
+    .login-logo .logo-icon {
+      width: 56px;
+      height: 56px;
+      background: linear-gradient(135deg, #1877f2, #C13584);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 28px;
+      font-weight: 800;
+      box-shadow: 0 4px 15px rgba(24, 119, 242, 0.4);
+    }
+    
+    .login-logo h2 {
+      font-size: 24px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: -0.5px;
+    }
+    
+    .login-logo p {
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.6);
+    }
+    
+    .login-field {
+      margin-bottom: 20px;
+      position: relative;
+    }
+    
+    .login-field label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.6);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+    
+    .login-field input {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 14px;
+      color: #fff;
+      outline: none;
+      transition: all 0.3s ease;
+    }
+    
+    .login-field input:focus {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: #1877f2;
+      box-shadow: 0 0 0 3px rgba(24, 119, 242, 0.25);
+    }
+    
+    .login-btn {
+      width: 100%;
+      background: linear-gradient(135deg, #1877f2, #C13584);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 14px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(193, 53, 132, 0.3);
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    
+    .login-btn:hover {
+      opacity: 0.95;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(193, 53, 132, 0.4);
+    }
+    
+    .login-btn:active {
+      transform: translateY(1px);
+    }
+    
+    .login-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    .login-credentials-box {
+      margin-top: 25px;
+      padding: 15px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px dashed rgba(255, 255, 255, 0.15);
+      border-radius: 10px;
+      text-align: center;
+    }
+    
+    .login-credentials-box h4 {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.5);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+    
+    .login-credentials-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      font-size: 13px;
+    }
+    
+    .login-cred-badge {
+      background: rgba(24, 119, 242, 0.15);
+      border: 1px solid rgba(24, 119, 242, 0.3);
+      padding: 8px 10px;
+      border-radius: 6px;
+      color: #90caf9;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      user-select: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    .login-cred-badge:hover {
+      background: rgba(24, 119, 242, 0.25);
+      border-color: #1877f2;
+    }
+    
+    .login-cred-label {
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.4);
+      margin-bottom: 2px;
+    }
+    
+    .login-cred-value {
+      font-weight: 600;
+    }
+    
+    .login-error-alert {
+      background: rgba(211, 47, 47, 0.2);
+      border: 1px solid rgba(211, 47, 47, 0.4);
+      color: #ffcdd2;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      margin-bottom: 20px;
+      display: none;
+      animation: loginShake 0.4s ease;
+      text-align: center;
+    }
+    
+    @keyframes loginShake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-6px); }
+      40%, 80% { transform: translateX(6px); }
+    }
   </style>
 </head>
 <body>
+
+<!-- Login Page Container -->
+<div id="login-container">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="logo-icon">S</div>
+      <h2>Social Poster</h2>
+      <p>Sign in to manage your channels</p>
+    </div>
+    
+    <div class="login-error-alert" id="login-error"></div>
+    
+    <form id="login-form">
+      <div class="login-field">
+        <label for="login-username">Username</label>
+        <input type="text" id="login-username" placeholder="Enter username" required autocomplete="username" />
+      </div>
+      
+      <div class="login-field">
+        <label for="login-password">Password</label>
+        <input type="password" id="login-password" placeholder="Enter password" required autocomplete="current-password" />
+      </div>
+      
+      <button type="submit" class="login-btn" id="login-btn-submit">
+        <span class="spinner" id="login-spinner"></span>
+        <span>Login</span>
+      </button>
+    </form>
+    
+    <div class="login-credentials-box">
+      <h4>Demo/Testing Credentials</h4>
+      <div class="login-credentials-grid">
+        <div class="login-cred-badge" onclick="fillCredentials('admin')">
+          <span class="login-cred-label">Username</span>
+          <span class="login-cred-value">admin</span>
+        </div>
+        <div class="login-cred-badge" onclick="fillCredentials('admin123')">
+          <span class="login-cred-label">Password</span>
+          <span class="login-cred-value">admin123</span>
+        </div>
+      </div>
+      <p style="font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 8px;">Click cards above to auto-fill</p>
+    </div>
+  </div>
+</div>
+
+<!-- Main App Wrapper -->
+<div id="app-container" style="display: none; width: 100%; min-height: 100vh;">
 
 <!-- ═══════════════════ SIDEBAR ═══════════════════ -->
 <aside class="sidebar">
@@ -366,6 +622,13 @@
     <div class="nav-item" data-page="help">
       <span class="nav-icon">❓</span>
       <span>Help Guide</span>
+    </div>
+
+    <div style="height:1px;background:#e4e6eb;margin:8px 16px"></div>
+
+    <div class="nav-item" id="logout-btn" style="color: #c62828;">
+      <span class="nav-icon">🚪</span>
+      <span>Logout</span>
     </div>
   </nav>
 
@@ -1036,6 +1299,7 @@
   </section>
 
 </main>
+</div> <!-- Closing tag for app-container -->
 
 <script>
 // Helper to render media preview
@@ -2151,17 +2415,116 @@ document.getElementById("pin-settings-form")?.addEventListener("submit", async e
   }
 });
 
+// ── window.fetch Wrapper for Authentication ──────────────────────────────────
+const originalFetch = window.fetch;
+window.fetch = async function(url, options) {
+  options = options || {};
+  options.headers = options.headers || {};
+  const token = localStorage.getItem("authToken");
+  
+  if (token) {
+    if (options.headers instanceof Headers) {
+      options.headers.set("Authorization", "Bearer " + token);
+    } else if (Array.isArray(options.headers)) {
+      options.headers.push(["Authorization", "Bearer " + token]);
+    } else {
+      options.headers["Authorization"] = "Bearer " + token;
+    }
+  }
+  
+  const response = await originalFetch(url, options);
+  
+  if (response.status === 401 && !url.includes("/api/login")) {
+    localStorage.removeItem("authToken");
+    showLoginScreen();
+  }
+  
+  return response;
+};
+
+// ── Auth helper functions ───────────────────────────────────────────────────
+function showLoginScreen() {
+  document.getElementById("login-container").style.display = "flex";
+  document.getElementById("app-container").style.display = "none";
+}
+
+function showAppScreen() {
+  document.getElementById("login-container").style.display = "none";
+  document.getElementById("app-container").style.display = "flex";
+}
+
+function fillCredentials(value) {
+  if (value === 'admin') {
+    document.getElementById("login-username").value = "admin";
+  } else if (value === 'admin123') {
+    document.getElementById("login-password").value = "admin123";
+  }
+}
+
+// Bind auth form submit
+document.getElementById("login-form")?.addEventListener("submit", async e => {
+  e.preventDefault();
+  const username = document.getElementById("login-username").value.trim();
+  const password = document.getElementById("login-password").value.trim();
+  const errorEl  = document.getElementById("login-error");
+  const spinner  = document.getElementById("login-spinner");
+  const submitBtn = document.getElementById("login-btn-submit");
+  
+  if (errorEl) errorEl.style.display = "none";
+  if (spinner) spinner.style.display = "inline-block";
+  if (submitBtn) submitBtn.disabled = true;
+  
+  try {
+    const res = await fetch("/api/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password })
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      localStorage.setItem("authToken", data.token);
+      showAppScreen();
+      goTo("dashboard");
+    } else {
+      if (errorEl) {
+        errorEl.textContent = data.message || "Invalid credentials.";
+        errorEl.style.display = "block";
+      }
+    }
+  } catch {
+    if (errorEl) {
+      errorEl.textContent = "Network error. Is the server running?";
+      errorEl.style.display = "block";
+    }
+  } finally {
+    if (spinner) spinner.style.display = "none";
+    if (submitBtn) submitBtn.disabled = false;
+  }
+});
+
+// Bind logout click
+document.getElementById("logout-btn")?.addEventListener("click", () => {
+  localStorage.removeItem("authToken");
+  showLoginScreen();
+});
+
 function refreshDashboard() {
   // Empty stub to prevent errors from other parts of the application calling refresh
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  loadSettingsStatus();
-  igLoadSettingsStatus();
-  ytLoadSettingsStatus();
-  tkLoadSettingsStatus();
-  pinLoadSettingsStatus();
-  aiLoadSettingsStatus();
+  const token = localStorage.getItem("authToken");
+  if (!token) {
+    showLoginScreen();
+  } else {
+    showAppScreen();
+    loadSettingsStatus();
+    igLoadSettingsStatus();
+    ytLoadSettingsStatus();
+    tkLoadSettingsStatus();
+    pinLoadSettingsStatus();
+    aiLoadSettingsStatus();
+  }
 });
 </script>
 </body>

@@ -35,6 +35,44 @@ function saveConfig(data) {
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
+// ─── Authentication Helper & Routes ──────────────────────────────────────────
+
+const AUTH_TOKEN = "admin-secret-session-token-123456";
+
+// Auth middleware
+const authMiddleware = (req, res, next) => {
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1];
+  
+  if (!token || token !== AUTH_TOKEN) {
+    return res.status(401).json({ success: false, message: "Unauthorized. Please log in." });
+  }
+  next();
+};
+
+app.post("/api/login", (req, res) => {
+  const { username, password } = req.body;
+  if (username === "admin" && password === "admin123") {
+    res.json({ success: true, token: AUTH_TOKEN });
+  } else {
+    res.status(401).json({ success: false, message: "Invalid username or password" });
+  }
+});
+
+app.get("/api/verify-token", authMiddleware, (req, res) => {
+  res.json({ success: true, message: "Token is valid" });
+});
+
+// Intercept all other APIs and publish routes
+app.use("/api", (req, res, next) => {
+  if (req.path === "/login") return next();
+  authMiddleware(req, res, next);
+});
+
+app.use("/post-to-facebook", authMiddleware);
+app.use("/post-to-instagram", authMiddleware);
+app.use("/post-to-youtube", authMiddleware);
+
 const UPLOADS_DIR = path.join(__dirname, "uploads");
 if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR);
 
