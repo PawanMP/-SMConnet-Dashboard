@@ -1,0 +1,2168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Social Media Manager</title>
+  <style>
+    /* ── Reset ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f0f2f5; display: flex; min-height: 100vh; }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: 230px; min-height: 100vh; background: #fff;
+      border-right: 1px solid #e4e6eb; display: flex; flex-direction: column;
+      padding: 0; flex-shrink: 0; position: fixed; top: 0; left: 0; bottom: 0;
+    }
+    .sidebar-logo {
+      display: flex; align-items: center; gap: 10px;
+      padding: 22px 20px 18px; border-bottom: 1px solid #e4e6eb;
+    }
+    .logo-icon {
+      width: 36px; height: 36px; background: #1877f2; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: 20px; font-weight: 800; flex-shrink: 0;
+    }
+    .logo-text { font-size: 15px; font-weight: 700; color: #1c1e21; line-height: 1.2; }
+    .logo-sub  { font-size: 11px; color: #65676b; }
+
+    .nav { padding: 12px 10px; flex: 1; }
+    .nav-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 14px; border-radius: 8px; cursor: pointer;
+      font-size: 14px; font-weight: 500; color: #444;
+      transition: background 0.15s, color 0.15s; margin-bottom: 2px;
+    }
+    .nav-item:hover    { background: #f0f2f5; color: #1877f2; }
+    .nav-item.active   { background: #e7f0fd; color: #1877f2; font-weight: 600; }
+    .nav-item .nav-icon { font-size: 18px; width: 22px; text-align: center; }
+
+    .sidebar-footer {
+      padding: 16px 20px; border-top: 1px solid #e4e6eb;
+      font-size: 12px; color: #b0b3b8;
+    }
+
+    /* ── Main ── */
+    .main { margin-left: 230px; flex: 1; padding: 32px; min-height: 100vh; }
+
+    /* ── Page heading ── */
+    .page-header { margin-bottom: 28px; }
+    .page-header h1 { font-size: 22px; font-weight: 700; color: #1c1e21; }
+    .page-header p  { font-size: 14px; color: #65676b; margin-top: 4px; }
+
+    /* ── Cards ── */
+    .card {
+      background: #fff; border-radius: 12px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08); padding: 24px;
+    }
+    .card + .card { margin-top: 20px; }
+
+    /* ── Dashboard grid ── */
+    .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 20px; }
+    .stat-card {
+      background: #fff; border-radius: 12px; padding: 20px 22px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08); display: flex; flex-direction: column; gap: 6px;
+    }
+    .stat-card .stat-label  { font-size: 12px; font-weight: 600; color: #65676b; text-transform: uppercase; letter-spacing: .5px; }
+    .stat-card .stat-value  { font-size: 28px; font-weight: 700; color: #1c1e21; }
+    .stat-card .stat-icon   { font-size: 24px; margin-bottom: 4px; }
+
+    /* connection banner */
+    .banner {
+      border-radius: 12px; padding: 20px 24px;
+      display: flex; align-items: center; gap: 16px; margin-bottom: 20px;
+    }
+    .banner.connected    { background: #e6f4ea; border: 1px solid #a8d5b5; }
+    .banner.disconnected { background: #fff3e0; border: 1px solid #ffcc80; }
+    .banner-icon { font-size: 32px; }
+    .banner-title { font-size: 16px; font-weight: 700; color: #1c1e21; }
+    .banner-sub   { font-size: 13px; color: #65676b; margin-top: 2px; }
+    .banner-btn {
+      margin-left: auto; padding: 8px 18px; border: none; border-radius: 8px;
+      font-size: 13px; font-weight: 600; cursor: pointer; transition: opacity .2s;
+    }
+    .banner-btn:hover { opacity: .85; }
+    .banner-btn.primary   { background: #1877f2; color: #fff; }
+    .banner-btn.secondary { background: #e4e6eb; color: #1c1e21; }
+
+    /* Page info card */
+    .page-info-card {
+      display: flex; align-items: center; gap: 16px; padding: 16px 20px;
+      background: #fff; border-radius: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      margin-bottom: 20px;
+    }
+    .page-avatar {
+      width: 56px; height: 56px; border-radius: 50%; object-fit: cover;
+      border: 2px solid #e4e6eb; background: #e4e6eb;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px; flex-shrink: 0; overflow: hidden;
+    }
+    .page-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .page-details .pname { font-size: 16px; font-weight: 700; color: #1c1e21; }
+    .page-details .pid   { font-size: 12px; color: #65676b; margin-top: 2px; }
+    .page-details .pfollowers { font-size: 13px; color: #1877f2; font-weight: 600; margin-top: 4px; }
+
+    /* ── Post form ── */
+    .field { margin-bottom: 20px; }
+    label  { display: block; font-size: 14px; font-weight: 600; color: #1c1e21; margin-bottom: 6px; }
+
+    .drop-zone {
+      border: 2px dashed #c8ccd0; border-radius: 10px; padding: 30px 20px;
+      text-align: center; cursor: pointer; transition: border-color .2s, background .2s; position: relative;
+    }
+    .drop-zone:hover, .drop-zone.dragover { border-color: #1877f2; background: #f0f5ff; }
+    .drop-zone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+    .drop-zone .dz-icon { font-size: 34px; margin-bottom: 8px; }
+    .drop-zone .dz-text { font-size: 14px; color: #65676b; }
+    .drop-zone .dz-hint { font-size: 12px; color: #b0b3b8; margin-top: 4px; }
+
+    #preview-wrap { display: none; margin-top: 12px; border-radius: 10px; overflow: hidden; position: relative; }
+    #preview-wrap img { width: 100%; max-height: 260px; object-fit: cover; display: block; }
+    #remove-btn {
+      position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,.55);
+      border: none; border-radius: 50%; width: 28px; height: 28px;
+      color: #fff; font-size: 14px; cursor: pointer; line-height: 28px; text-align: center;
+    }
+
+    textarea {
+      width: 100%; resize: vertical; border: 1px solid #c8ccd0; border-radius: 8px;
+      padding: 10px 12px; font-size: 14px; color: #1c1e21; outline: none;
+      transition: border-color .2s; min-height: 90px; font-family: inherit;
+    }
+    textarea:focus { border-color: #1877f2; }
+
+    .btn-primary {
+      padding: 12px 24px; background: #1877f2; color: #fff; border: none;
+      border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer;
+      transition: background .2s, opacity .2s; display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn-primary:hover:not(:disabled) { background: #166fe5; }
+    .btn-primary:disabled { opacity: .6; cursor: not-allowed; }
+    .btn-primary.full { width: 100%; justify-content: center; }
+
+    .btn-secondary {
+      padding: 11px 22px; background: #e4e6eb; color: #1c1e21; border: none;
+      border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;
+      transition: background .2s; display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn-secondary:hover:not(:disabled) { background: #d8dadf; }
+    .btn-secondary:disabled { opacity: .6; cursor: not-allowed; }
+
+    .btn-row { display: flex; gap: 12px; margin-top: 4px; }
+
+    /* ── Settings form ── */
+    .settings-section-title {
+      font-size: 13px; font-weight: 700; color: #65676b;
+      text-transform: uppercase; letter-spacing: .6px; margin-bottom: 16px;
+    }
+    .input-group { position: relative; }
+    .input-group input {
+      width: 100%; border: 1px solid #c8ccd0; border-radius: 8px;
+      padding: 10px 40px 10px 12px; font-size: 14px; color: #1c1e21; outline: none;
+      transition: border-color .2s; font-family: inherit;
+    }
+    .input-group input:focus { border-color: #1877f2; }
+    .input-group .eye-btn {
+      position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; cursor: pointer; font-size: 16px; color: #65676b;
+    }
+    .input-hint { font-size: 12px; color: #65676b; margin-top: 5px; }
+
+    .status-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 600;
+    }
+    .status-badge.ok  { background: #e6f4ea; color: #1a7335; }
+    .status-badge.bad { background: #fdecea; color: #b71c1c; }
+    .status-badge.idle{ background: #f0f2f5; color: #65676b; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+    .dot.green  { background: #2e7d32; }
+    .dot.red    { background: #c62828; }
+    .dot.grey   { background: #9e9e9e; }
+
+    /* ── Alerts ── */
+    .alert { padding: 12px 14px; border-radius: 8px; font-size: 14px; display: none; margin-top: 14px; }
+    .alert.success { background: #e6f4ea; color: #1a7335; border: 1px solid #a8d5b5; }
+    .alert.error   { background: #fdecea; color: #b71c1c; border: 1px solid #f5c6c6; }
+    .alert.info    { background: #e3f2fd; color: #0d47a1; border: 1px solid #90caf9; }
+
+    /* ── Spinner ── */
+    .spinner {
+      width: 16px; height: 16px; border: 2px solid rgba(255,255,255,.4);
+      border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; display: none;
+    }
+    .spinner.dark { border-color: rgba(0,0,0,.15); border-top-color: #444; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Pages visibility ── */
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* ── Divider ── */
+    .divider { border: none; border-top: 1px solid #e4e6eb; margin: 20px 0; }
+
+    /* ── Nav section label ── */
+    .nav-section { font-size: 11px; font-weight: 700; color: #b0b3b8; text-transform: uppercase; letter-spacing: .6px; padding: 14px 14px 6px; }
+
+    /* ── Instagram accent ── */
+    .ig-accent { color: #E1306C; }
+    .nav-item.ig-active { background: #fce4ec; color: #C13584; font-weight: 600; }
+    .nav-item.ig-hover:hover { color: #C13584; }
+    .banner.ig-connected    { background: #fce4ec; border: 1px solid #f48fb1; }
+    .banner.ig-disconnected { background: #fff3e0; border: 1px solid #ffcc80; }
+    .status-badge.ig-ok { background: #fce4ec; color: #C13584; }
+    .btn-ig {
+      padding: 12px 24px; background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+      color: #fff; border: none; border-radius: 8px; font-size: 15px; font-weight: 600;
+      cursor: pointer; transition: opacity .2s; display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn-ig:hover:not(:disabled) { opacity: .9; }
+    .btn-ig:disabled { opacity: .6; cursor: not-allowed; }
+    .btn-ig.full { width: 100%; justify-content: center; }
+
+    /* ── YouTube accent ── */
+    .nav-item.yt-active { background: #fee2e2; color: #dc2626; font-weight: 600; }
+    .nav-item.yt-hover:hover { color: #dc2626; }
+    .btn-yt {
+      padding: 12px 24px; background: #FF0000;
+      color: #fff; border: none; border-radius: 8px; font-size: 15px; font-weight: 600;
+      cursor: pointer; transition: background .2s; display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn-yt:hover:not(:disabled) { background: #cc0000; }
+    .btn-yt:disabled { opacity: .6; cursor: not-allowed; }
+    .btn-yt.full { width: 100%; justify-content: center; }
+    .status-badge.yt-ok { background: #fee2e2; color: #dc2626; }
+    .banner.yt-connected    { background: #fee2e2; border: 1px solid #fecaca; }
+    .banner.yt-disconnected { background: #fff1f2; border: 1px solid #fecaca; }
+
+    /* ── TikTok accent ── */
+    .nav-item.tk-active { background: #f0fdf4; color: #00f2ea; font-weight: 600; }
+    .nav-item.tk-hover:hover { color: #00f2ea; }
+    .btn-tk {
+      padding: 12px 24px; background: #000; color: #fff; border: none; border-radius: 8px;
+      font-size: 15px; font-weight: 600; cursor: pointer; transition: opacity .2s;
+      display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn-tk:hover:not(:disabled) { opacity: .85; }
+    .btn-tk:disabled { opacity: .6; cursor: not-allowed; }
+    .status-badge.tk-ok { background: #f0fdf4; color: #00f2ea; }
+    .banner.tk-connected    { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .banner.tk-disconnected { background: #fff3e0; border: 1px solid #ffcc80; }
+
+    /* ── Pinterest accent ── */
+    .nav-item.pin-active { background: #fef2f2; color: #E60023; font-weight: 600; }
+    .nav-item.pin-hover:hover { color: #E60023; }
+    .btn-pin {
+      padding: 12px 24px; background: #E60023; color: #fff; border: none; border-radius: 8px;
+      font-size: 15px; font-weight: 600; cursor: pointer; transition: opacity .2s;
+      display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn-pin:hover:not(:disabled) { opacity: .85; }
+    .btn-pin:disabled { opacity: .6; cursor: not-allowed; }
+    .status-badge.pin-ok { background: #fef2f2; color: #E60023; }
+    .banner.pin-connected    { background: #fef2f2; border: 1px solid #fecaca; }
+    .banner.pin-disconnected { background: #fff3e0; border: 1px solid #ffcc80; }
+
+    /* ── Platform Selector ── */
+    .platform-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+    .platform-checkbox { display: none; }
+    .platform-label {
+      display: flex; align-items: center; gap: 10px; padding: 12px 16px;
+      border: 2px solid #e4e6eb; border-radius: 10px; cursor: pointer;
+      transition: all .2s; font-size: 14px; font-weight: 600; color: #444;
+      user-select: none;
+    }
+    .platform-label:hover { border-color: #90caf9; background: #f8f9fa; }
+    .platform-checkbox:checked + .platform-label {
+      border-color: #1877f2; background: #e7f0fd; color: #1877f2;
+    }
+    .platform-label .plat-icon { font-size: 20px; }
+    .platform-label .plat-check {
+      margin-left: auto; width: 20px; height: 20px; border: 2px solid #ccc;
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-size: 12px; transition: all .2s;
+    }
+    .platform-checkbox:checked + .platform-label .plat-check {
+      background: #1877f2; border-color: #1877f2; color: #fff;
+    }
+
+    /* ── Platform Details Sections ── */
+    .platform-detail-section {
+      border: 1px solid #e4e6eb; border-radius: 12px; padding: 20px;
+      margin-top: 14px; animation: fadeSlide .3s ease;
+    }
+    .platform-detail-header {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 16px;
+      padding-bottom: 12px; border-bottom: 1px solid #f0f2f5;
+    }
+    .platform-detail-header .pdh-icon { font-size: 22px; }
+    .platform-detail-header .pdh-title { font-size: 15px; font-weight: 700; }
+    .hashtag-input {
+      width: 100%; border: 1px solid #c8ccd0; border-radius: 8px;
+      padding: 10px 12px; font-size: 14px; color: #1c1e21; outline: none;
+      transition: border-color .2s; font-family: inherit;
+    }
+    .hashtag-input:focus { border-color: #1877f2; }
+    .hashtag-hint { font-size: 12px; color: #65676b; margin-top: 4px; }
+
+    @keyframes fadeSlide {
+      from { opacity: 0; transform: translateY(-8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 700px) {
+      .sidebar { width: 60px; }
+      .sidebar .logo-text, .sidebar .logo-sub, .nav-item span:last-child,
+      .sidebar-footer, .nav-section { display: none; }
+      .main { margin-left: 60px; padding: 20px 14px; }
+      .stat-grid { grid-template-columns: 1fr; }
+      .platform-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════ SIDEBAR ═══════════════════ -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon" style="background:linear-gradient(135deg,#1877f2,#C13584)">S</div>
+    <div>
+      <div class="logo-text">Social Poster</div>
+      <div class="logo-sub">Multi-Platform</div>
+    </div>
+  </div>
+
+  <nav class="nav">
+    <div class="nav-item active" data-page="dashboard">
+      <span class="nav-icon">🏠</span><span>Dashboard</span>
+    </div>
+
+    <div style="height:1px;background:#e4e6eb;margin:8px 16px"></div>
+
+    <div class="nav-item" data-page="facebook">
+      <span class="nav-icon">📘</span><span>Facebook</span>
+    </div>
+    <div class="nav-item ig-hover" data-page="instagram">
+      <span class="nav-icon">📸</span><span>Instagram</span>
+    </div>
+    <div class="nav-item yt-hover" data-page="youtube">
+      <span class="nav-icon">📽️</span><span>YouTube</span>
+    </div>
+    <div class="nav-item tk-hover" data-page="tiktok">
+      <span class="nav-icon">🎵</span><span>TikTok</span>
+    </div>
+    <div class="nav-item pin-hover" data-page="pinterest">
+      <span class="nav-icon">📌</span><span>Pinterest</span>
+    </div>
+
+    <div style="height:1px;background:#e4e6eb;margin:8px 16px"></div>
+
+    <div class="nav-item" data-page="ai-settings">
+      <span class="nav-icon">🪄</span><span>AI Settings</span>
+    </div>
+    
+    <div class="nav-item" data-page="help">
+      <span class="nav-icon">❓</span>
+      <span>Help Guide</span>
+    </div>
+  </nav>
+
+  <div class="sidebar-footer">v4.0 · Multi-Platform Social Poster</div>
+</aside>
+
+<!-- ═══════════════════ MAIN ═══════════════════ -->
+<main class="main">
+
+  <!-- ── DASHBOARD ── -->
+  <section class="page active" id="page-dashboard">
+    <div class="page-header">
+      <h1>Dashboard</h1>
+      <p>Create and publish content across your social media platforms</p>
+    </div>
+
+    <!-- ═══ STEP 1: Upload Content ═══ -->
+    <div class="card" style="margin-bottom:20px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+        <span style="background:#1877f2;color:#fff;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0">1</span>
+        <h2 style="font-size:17px;font-weight:700;color:#1c1e21;margin:0">Add Content</h2>
+      </div>
+      <div class="drop-zone" id="dash-drop-zone">
+        <input type="file" id="dash-file-input" accept="image/*,video/*" />
+        <div class="dz-icon">📁</div>
+        <div class="dz-text">Click or drag a photo or video here</div>
+        <div class="dz-hint">JPG · PNG · MP4 · MOV · max 10 MB</div>
+      </div>
+      <div id="dash-preview-wrap" style="display:none;margin-top:12px;border-radius:10px;overflow:hidden;position:relative">
+        <div id="dash-media-preview"></div>
+        <button type="button" id="dash-remove-btn" title="Remove" style="position:absolute;top:8px;right:8px;background:rgba(0,0,0,.55);border:none;border-radius:50%;width:28px;height:28px;color:#fff;font-size:14px;cursor:pointer;line-height:28px;text-align:center">✕</button>
+      </div>
+    </div>
+
+    <!-- ═══ STEP 2: Select Platforms ═══ -->
+    <div class="card" style="margin-bottom:20px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+        <span style="background:#1877f2;color:#fff;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0">2</span>
+        <h2 style="font-size:17px;font-weight:700;color:#1c1e21;margin:0">Select Platforms</h2>
+      </div>
+      <p style="font-size:13px;color:#65676b;margin-bottom:14px">Choose one or more platforms to publish your content to.</p>
+      <div class="platform-grid">
+        <div>
+          <input type="checkbox" class="platform-checkbox" id="plat-fb" value="facebook" onchange="togglePlatformFields()">
+          <label class="platform-label" for="plat-fb">
+            <span class="plat-icon">📘</span> Facebook
+            <span class="plat-check">✓</span>
+          </label>
+        </div>
+        <div>
+          <input type="checkbox" class="platform-checkbox" id="plat-ig" value="instagram" onchange="togglePlatformFields()">
+          <label class="platform-label" for="plat-ig">
+            <span class="plat-icon">📸</span> Instagram
+            <span class="plat-check">✓</span>
+          </label>
+        </div>
+        <div>
+          <input type="checkbox" class="platform-checkbox" id="plat-yt" value="youtube" onchange="togglePlatformFields()">
+          <label class="platform-label" for="plat-yt">
+            <span class="plat-icon">📽️</span> YouTube
+            <span class="plat-check">✓</span>
+          </label>
+        </div>
+        <div>
+          <input type="checkbox" class="platform-checkbox" id="plat-tk" value="tiktok" onchange="togglePlatformFields()">
+          <label class="platform-label" for="plat-tk">
+            <span class="plat-icon">🎵</span> TikTok
+            <span class="plat-check">✓</span>
+          </label>
+        </div>
+        <div>
+          <input type="checkbox" class="platform-checkbox" id="plat-pin" value="pinterest" onchange="togglePlatformFields()">
+          <label class="platform-label" for="plat-pin">
+            <span class="plat-icon">📌</span> Pinterest
+            <span class="plat-check">✓</span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ STEP 3: Platform-specific details ═══ -->
+    <div class="card" id="platform-details-card" style="margin-bottom:20px;display:none">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+        <span style="background:#1877f2;color:#fff;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0">3</span>
+        <h2 style="font-size:17px;font-weight:700;color:#1c1e21;margin:0">Platform Details</h2>
+      </div>
+
+      <!-- AI Prompt Guidance and Action Button -->
+      <div style="background:#f0f5ff;border:1px dashed #1877f2;border-radius:8px;padding:16px;margin-bottom:20px">
+        <label for="ai-dash-prompt" style="color:#0f52ba;font-size:13px;display:flex;align-items:center;gap:6px;margin-bottom:8px;font-weight:700">
+          🪄 AI Caption & Hashtag Assistant (Optional)
+        </label>
+        <div class="field" style="margin-bottom:12px">
+          <input type="text" class="hashtag-input" id="ai-dash-prompt" placeholder="Enter post context... (e.g. 'Promo for our summer bubble tea sale', 'Tips on learning JavaScript')">
+        </div>
+        <button class="btn-primary" id="ai-gen-btn" onclick="generateAiContent()" type="button" style="background:linear-gradient(45deg,#0052d4,#4364f7,#6fb1fc);border:none;padding:10px 18px;font-size:13.5px;font-weight:600">
+          <span class="spinner" id="ai-gen-spinner"></span>
+          <span id="ai-gen-text">✨ Auto-Generate Captions &amp; Hashtags</span>
+        </button>
+        <div class="alert success" id="ai-gen-success" style="margin-top:10px;font-size:13px;padding:8px 12px"></div>
+        <div class="alert error" id="ai-gen-error" style="margin-top:10px;font-size:13px;padding:8px 12px"></div>
+      </div>
+
+      <!-- Facebook fields -->
+      <div class="platform-detail-section" id="detail-facebook" style="display:none">
+        <div class="platform-detail-header">
+          <span class="pdh-icon">📘</span>
+          <span class="pdh-title" style="color:#1877f2">Facebook</span>
+        </div>
+        <div class="field">
+          <label for="fb-dash-caption">Caption</label>
+          <textarea id="fb-dash-caption" placeholder="Write a caption for your Facebook post…" style="min-height:70px"></textarea>
+        </div>
+        <div class="field" style="margin-bottom:0">
+          <label>Hashtags</label>
+          <input type="text" class="hashtag-input" id="fb-dash-hashtags" placeholder="#facebook #social #post">
+          <div class="hashtag-hint">Separate hashtags with spaces</div>
+        </div>
+      </div>
+
+      <!-- Instagram fields -->
+      <div class="platform-detail-section" id="detail-instagram" style="display:none">
+        <div class="platform-detail-header">
+          <span class="pdh-icon">📸</span>
+          <span class="pdh-title" style="color:#C13584">Instagram</span>
+        </div>
+        <div class="field">
+          <label for="ig-dash-caption">Caption</label>
+          <textarea id="ig-dash-caption" placeholder="Write a caption for your Instagram post…" style="min-height:70px"></textarea>
+        </div>
+        <div class="field">
+          <label for="ig-dash-url">Public Media URL <span style="color:#b0b3b8;font-weight:normal">(Required for Instagram)</span></label>
+          <input type="text" class="hashtag-input" id="ig-dash-url" placeholder="https://example.com/image.jpg">
+        </div>
+        <div class="field" style="margin-bottom:0">
+          <label>Hashtags</label>
+          <input type="text" class="hashtag-input" id="ig-dash-hashtags" placeholder="#instagram #instagood #photooftheday">
+          <div class="hashtag-hint">Separate hashtags with spaces</div>
+        </div>
+      </div>
+
+      <!-- YouTube fields -->
+      <div class="platform-detail-section" id="detail-youtube" style="display:none">
+        <div class="platform-detail-header">
+          <span class="pdh-icon">📽️</span>
+          <span class="pdh-title" style="color:#FF0000">YouTube</span>
+        </div>
+        <div class="field">
+          <label for="yt-dash-title">Video Title</label>
+          <input type="text" class="hashtag-input" id="yt-dash-title" placeholder="Enter video title…">
+        </div>
+        <div class="field">
+          <label for="yt-dash-description">Description</label>
+          <textarea id="yt-dash-description" placeholder="Write a description for your YouTube video…" style="min-height:70px"></textarea>
+        </div>
+        <div class="field" style="margin-bottom:0">
+          <label>Tags</label>
+          <input type="text" class="hashtag-input" id="yt-dash-hashtags" placeholder="#youtube #video #vlog">
+          <div class="hashtag-hint">Separate tags with spaces</div>
+        </div>
+      </div>
+
+      <!-- TikTok fields -->
+      <div class="platform-detail-section" id="detail-tiktok" style="display:none">
+        <div class="platform-detail-header">
+          <span class="pdh-icon">🎵</span>
+          <span class="pdh-title" style="color:#000">TikTok</span>
+        </div>
+        <div class="field">
+          <label for="tk-dash-caption">Caption</label>
+          <textarea id="tk-dash-caption" placeholder="Write a caption for your TikTok video…" style="min-height:70px"></textarea>
+        </div>
+        <div class="field" style="margin-bottom:0">
+          <label>Hashtags</label>
+          <input type="text" class="hashtag-input" id="tk-dash-hashtags" placeholder="#tiktok #fyp #viral">
+          <div class="hashtag-hint">Separate hashtags with spaces</div>
+        </div>
+      </div>
+
+      <!-- Pinterest fields -->
+      <div class="platform-detail-section" id="detail-pinterest" style="display:none">
+        <div class="platform-detail-header">
+          <span class="pdh-icon">📌</span>
+          <span class="pdh-title" style="color:#E60023">Pinterest</span>
+        </div>
+        <div class="field">
+          <label for="pin-dash-title">Pin Title</label>
+          <input type="text" class="hashtag-input" id="pin-dash-title" placeholder="Enter pin title…">
+        </div>
+        <div class="field">
+          <label for="pin-dash-description">Description</label>
+          <textarea id="pin-dash-description" placeholder="Write a description for your Pinterest pin…" style="min-height:70px"></textarea>
+        </div>
+        <div class="field" style="margin-bottom:0">
+          <label>Hashtags</label>
+          <input type="text" class="hashtag-input" id="pin-dash-hashtags" placeholder="#pinterest #pinit #inspiration">
+          <div class="hashtag-hint">Separate hashtags with spaces</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ STEP 4: Publish ═══ -->
+    <div class="card" style="margin-bottom:20px">
+      <button class="btn-primary full" id="dash-publish-btn" onclick="dashPublish()" disabled>
+        <span class="spinner" id="dash-publish-spinner"></span>
+        <span id="dash-publish-text">🚀 Publish to Selected Platforms</span>
+      </button>
+      <div class="alert success" id="dash-publish-success"></div>
+      <div class="alert error" id="dash-publish-error"></div>
+    </div>
+  </section>
+
+  <!-- ── FACEBOOK (Settings & Connection) ── -->
+  <section class="page" id="page-facebook">
+    <div class="page-header">
+      <h1>📘 Facebook</h1>
+      <p>Connect and configure your Facebook Page</p>
+    </div>
+    <div class="card" style="max-width:560px;margin-bottom:20px">
+      <div class="settings-section-title">Connection Status</div>
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <span class="status-badge idle" id="conn-status-badge">
+          <span class="dot grey" id="conn-dot"></span>
+          <span id="conn-status-text">Checking…</span>
+        </span>
+        <button class="btn-secondary" id="test-btn" onclick="testConnection()">
+          <span class="spinner dark" id="test-spinner"></span>
+          <span id="test-btn-text">Test Connection</span>
+        </button>
+      </div>
+      <div class="alert success" id="test-success" style="margin-top:12px"></div>
+      <div class="alert error"   id="test-error"   style="margin-top:12px"></div>
+    </div>
+    <div class="card" style="max-width:560px">
+      <div class="settings-section-title">Facebook Credentials</div>
+      <form id="settings-form">
+        <div class="field">
+          <label for="s-page-id">Page ID</label>
+          <div class="input-group">
+            <input type="text" id="s-page-id" placeholder="e.g. 123456789012345" autocomplete="off" />
+          </div>
+          <div class="input-hint">Found on your Facebook Page → About → Page ID</div>
+        </div>
+        <div class="field">
+          <label for="s-access-token">Page Access Token</label>
+          <div class="input-group">
+            <input type="password" id="s-access-token" placeholder="Paste your Page Access Token" autocomplete="off" />
+            <button type="button" class="eye-btn" id="eye-btn" title="Show/hide token">👁</button>
+          </div>
+          <div class="input-hint">Generate from <a href="https://developers.facebook.com/tools/explorer" target="_blank" style="color:#1877f2">Graph API Explorer</a> with <code>pages_manage_posts</code> permission</div>
+        </div>
+        <div class="btn-row">
+          <button type="submit" class="btn-primary" id="save-btn">
+            <span class="spinner" id="save-spinner"></span>
+            <span id="save-btn-text">Save Credentials</span>
+          </button>
+          <button type="button" class="btn-secondary" onclick="testConnection()">Test Connection</button>
+        </div>
+      </form>
+      <div class="alert success" id="save-success" style="margin-top:14px"></div>
+      <div class="alert error"   id="save-error"   style="margin-top:14px"></div>
+      <hr class="divider" />
+      <div class="settings-section-title">How to get your credentials</div>
+      <ol style="font-size:13px;color:#444;line-height:2;padding-left:18px">
+        <li>Go to <a href="https://developers.facebook.com" target="_blank" style="color:#1877f2">developers.facebook.com</a> → Create App → Business</li>
+        <li>Open <a href="https://developers.facebook.com/tools/explorer" target="_blank" style="color:#1877f2">Graph API Explorer</a> and select your app</li>
+        <li>Click <strong>Generate Access Token</strong>, grant <code>pages_manage_posts</code> &amp; <code>pages_read_engagement</code></li>
+        <li>Switch the dropdown from <em>User Token</em> to your <strong>Page name</strong> — this gives you a Page Access Token</li>
+        <li>Copy the token and your Page ID (found on your Page → About) into the fields above</li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ── INSTAGRAM (Settings & Connection) ── -->
+  <section class="page" id="page-instagram">
+    <div class="page-header">
+      <h1>📸 Instagram</h1>
+      <p>Connect your Instagram Business Account</p>
+    </div>
+    <div class="card" style="max-width:560px;margin-bottom:20px">
+      <div class="settings-section-title">Connection Status</div>
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <span class="status-badge idle" id="ig-conn-status-badge">
+          <span class="dot grey" id="ig-conn-dot"></span>
+          <span id="ig-conn-status-text">Checking…</span>
+        </span>
+        <button class="btn-secondary" id="ig-test-btn" onclick="igTestConnection()">
+          <span class="spinner dark" id="ig-test-spinner"></span>
+          <span id="ig-test-btn-text">Test Connection</span>
+        </button>
+      </div>
+      <div class="alert success" id="ig-test-success" style="margin-top:12px"></div>
+      <div class="alert error"   id="ig-test-error"   style="margin-top:12px"></div>
+    </div>
+    <div class="card" style="max-width:560px">
+      <div class="settings-section-title">Instagram Credentials</div>
+      <form id="ig-settings-form">
+        <div class="field">
+          <label for="ig-account-id">Instagram Business Account ID</label>
+          <div class="input-group">
+            <input type="text" id="ig-account-id" placeholder="e.g. 17841400123456789" autocomplete="off" />
+          </div>
+          <div class="input-hint">Found via Graph API Explorer: GET /me/accounts → select page → GET /{page-id}?fields=instagram_business_account</div>
+        </div>
+        <div class="field">
+          <label for="ig-access-token">Access Token</label>
+          <div class="input-group">
+            <input type="password" id="ig-access-token" placeholder="Paste your Access Token" autocomplete="off" />
+            <button type="button" class="eye-btn" id="ig-eye-btn" title="Show/hide token">👁</button>
+          </div>
+          <div class="input-hint">Use the same token from <a href="https://developers.facebook.com/tools/explorer" target="_blank" style="color:#C13584">Graph API Explorer</a> with <code>instagram_basic</code>, <code>instagram_content_publish</code> permissions</div>
+        </div>
+        <div class="btn-row">
+          <button type="submit" class="btn-ig" id="ig-save-btn">
+            <span class="spinner" id="ig-save-spinner"></span>
+            <span id="ig-save-btn-text">Save Credentials</span>
+          </button>
+          <button type="button" class="btn-secondary" onclick="igTestConnection()">Test Connection</button>
+        </div>
+      </form>
+      <div class="alert success" id="ig-save-success" style="margin-top:14px"></div>
+      <div class="alert error"   id="ig-save-error"   style="margin-top:14px"></div>
+      <hr class="divider" />
+      <div class="settings-section-title">How to get Instagram credentials</div>
+      <ol style="font-size:13px;color:#444;line-height:2;padding-left:18px">
+        <li>Your Instagram account must be a <strong>Business</strong> or <strong>Creator</strong> account linked to a Facebook Page</li>
+        <li>In <a href="https://developers.facebook.com/tools/explorer" target="_blank" style="color:#C13584">Graph API Explorer</a>, add permissions: <code>instagram_basic</code>, <code>instagram_content_publish</code>, <code>pages_read_engagement</code></li>
+        <li>Generate a <strong>Page Access Token</strong> (switch dropdown to your Page)</li>
+        <li>Call <code>GET /{page-id}?fields=instagram_business_account</code> to get your IG Account ID</li>
+        <li>Paste both values into the fields above</li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ── YOUTUBE (Settings & Connection) ── -->
+  <section class="page" id="page-youtube">
+    <div class="page-header">
+      <h1>📽️ YouTube</h1>
+      <p>Connect your YouTube Channel</p>
+    </div>
+    <div class="card" style="max-width:560px;margin-bottom:20px">
+      <div class="settings-section-title">Connection Status</div>
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <span class="status-badge idle" id="yt-conn-status-badge">
+          <span class="dot grey" id="yt-conn-dot"></span>
+          <span id="yt-conn-status-text">Checking…</span>
+        </span>
+        <button class="btn-secondary" id="yt-test-btn" onclick="ytTestConnection()">
+          <span class="spinner dark" id="yt-test-spinner"></span>
+          <span id="yt-test-btn-text">Test Connection</span>
+        </button>
+      </div>
+      <div class="alert success" id="yt-test-success" style="margin-top:12px"></div>
+      <div class="alert error"   id="yt-test-error"   style="margin-top:12px"></div>
+    </div>
+    <div class="card" style="max-width:560px">
+      <div class="settings-section-title">YouTube Credentials</div>
+      <form id="yt-settings-form">
+        <div class="field">
+          <label for="yt-channel-id-input">Channel ID</label>
+          <div class="input-group">
+            <input type="text" id="yt-channel-id-input" placeholder="e.g. UCxxxxxxxxxxxxxxx" autocomplete="off" />
+          </div>
+          <div class="input-hint">Found in YouTube Studio → Settings → Advanced Settings</div>
+        </div>
+        <div class="field">
+          <label for="yt-access-token">OAuth2 Access Token</label>
+          <div class="input-group">
+            <input type="password" id="yt-access-token" placeholder="Paste your OAuth2 Access Token" autocomplete="off" />
+            <button type="button" class="eye-btn" id="yt-eye-btn-settings" title="Show/hide token">👁</button>
+          </div>
+          <div class="input-hint">Generate from <a href="https://developers.google.com/oauthplayground" target="_blank" style="color:#dc2626">Google OAuth2 Playground</a> with <code>youtube.upload</code> scope</div>
+        </div>
+        <div class="btn-row">
+          <button type="submit" class="btn-yt" id="yt-save-btn">
+            <span class="spinner" id="yt-save-spinner"></span>
+            <span id="yt-save-btn-text">Save Credentials</span>
+          </button>
+          <button type="button" class="btn-secondary" onclick="ytTestConnection()">Test Connection</button>
+        </div>
+      </form>
+      <div class="alert success" id="yt-save-success" style="margin-top:14px"></div>
+      <div class="alert error"   id="yt-save-error"   style="margin-top:14px"></div>
+      <hr class="divider" />
+      <div class="settings-section-title">How to get YouTube credentials</div>
+      <ol style="font-size:13px;color:#444;line-height:2;padding-left:18px">
+        <li>Go to <a href="https://console.cloud.google.com" target="_blank" style="color:#dc2626">Google Cloud Console</a> and enable YouTube Data API v3</li>
+        <li>Create OAuth 2.0 credentials (Client ID + Secret)</li>
+        <li>Go to <a href="https://developers.google.com/oauthplayground" target="_blank" style="color:#dc2626">OAuth2 Playground</a> and select <strong>YouTube Data API v3 → youtube.upload</strong></li>
+        <li>Authorize APIs and exchange the authorization code for tokens</li>
+        <li>Copy the Access Token and your Channel ID into the fields above</li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ── TIKTOK (Settings & Connection) ── -->
+  <section class="page" id="page-tiktok">
+    <div class="page-header">
+      <h1>🎵 TikTok</h1>
+      <p>Connect your TikTok account</p>
+    </div>
+    <div class="card" style="max-width:560px;margin-bottom:20px">
+      <div class="settings-section-title">Connection Status</div>
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <span class="status-badge idle" id="tk-conn-status-badge">
+          <span class="dot grey" id="tk-conn-dot"></span>
+          <span id="tk-conn-status-text">Not configured</span>
+        </span>
+        <button class="btn-secondary" id="tk-test-btn" onclick="tkTestConnection()">
+          <span class="spinner dark" id="tk-test-spinner"></span>
+          <span id="tk-test-btn-text">Test Connection</span>
+        </button>
+      </div>
+      <div class="alert success" id="tk-test-success" style="margin-top:12px"></div>
+      <div class="alert error"   id="tk-test-error"   style="margin-top:12px"></div>
+    </div>
+    <div class="card" style="max-width:560px">
+      <div class="settings-section-title">TikTok Credentials</div>
+      <form id="tk-settings-form">
+        <div class="field">
+          <label for="tk-client-key">Client Key</label>
+          <div class="input-group">
+            <input type="text" id="tk-client-key" placeholder="e.g. awxxxxxxxxxxxxxxxx" autocomplete="off" />
+          </div>
+          <div class="input-hint">Found in your TikTok Developer App settings</div>
+        </div>
+        <div class="field">
+          <label for="tk-access-token">Access Token</label>
+          <div class="input-group">
+            <input type="password" id="tk-access-token" placeholder="Paste your TikTok Access Token" autocomplete="off" />
+            <button type="button" class="eye-btn" id="tk-eye-btn" title="Show/hide token" onclick="document.getElementById('tk-access-token').type=document.getElementById('tk-access-token').type==='password'?'text':'password'">👁</button>
+          </div>
+          <div class="input-hint">Obtain from TikTok's OAuth flow after app authorization</div>
+        </div>
+        <div class="btn-row">
+          <button type="submit" class="btn-tk" id="tk-save-btn">
+            <span class="spinner" id="tk-save-spinner"></span>
+            <span id="tk-save-btn-text">Save Credentials</span>
+          </button>
+          <button type="button" class="btn-secondary" onclick="tkTestConnection()">Test Connection</button>
+        </div>
+      </form>
+      <div class="alert success" id="tk-save-success" style="margin-top:14px"></div>
+      <div class="alert error"   id="tk-save-error"   style="margin-top:14px"></div>
+      <hr class="divider" />
+      <div class="settings-section-title">How to get TikTok credentials</div>
+      <ol style="font-size:13px;color:#444;line-height:2;padding-left:18px">
+        <li>Go to <a href="https://developers.tiktok.com" target="_blank" style="color:#000;font-weight:600">TikTok for Developers</a> and create an app</li>
+        <li>Add the <strong>Content Posting API</strong> product to your app</li>
+        <li>Complete the app review process</li>
+        <li>Use the OAuth flow to get your Access Token</li>
+        <li>Paste the Client Key and Access Token into the fields above</li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ── PINTEREST (Settings & Connection) ── -->
+  <section class="page" id="page-pinterest">
+    <div class="page-header">
+      <h1>📌 Pinterest</h1>
+      <p>Connect your Pinterest account</p>
+    </div>
+    <div class="card" style="max-width:560px;margin-bottom:20px">
+      <div class="settings-section-title">Connection Status</div>
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <span class="status-badge idle" id="pin-conn-status-badge">
+          <span class="dot grey" id="pin-conn-dot"></span>
+          <span id="pin-conn-status-text">Not configured</span>
+        </span>
+        <button class="btn-secondary" id="pin-test-btn" onclick="pinTestConnection()">
+          <span class="spinner dark" id="pin-test-spinner"></span>
+          <span id="pin-test-btn-text">Test Connection</span>
+        </button>
+      </div>
+      <div class="alert success" id="pin-test-success" style="margin-top:12px"></div>
+      <div class="alert error"   id="pin-test-error"   style="margin-top:12px"></div>
+    </div>
+    <div class="card" style="max-width:560px">
+      <div class="settings-section-title">Pinterest Credentials</div>
+      <form id="pin-settings-form">
+        <div class="field">
+          <label for="pin-app-id">App ID</label>
+          <div class="input-group">
+            <input type="text" id="pin-app-id" placeholder="e.g. 14XXXXXXXXXX" autocomplete="off" />
+          </div>
+          <div class="input-hint">Found in your Pinterest Developer App settings</div>
+        </div>
+        <div class="field">
+          <label for="pin-access-token">Access Token</label>
+          <div class="input-group">
+            <input type="password" id="pin-access-token" placeholder="Paste your Pinterest Access Token" autocomplete="off" />
+            <button type="button" class="eye-btn" id="pin-eye-btn" title="Show/hide token" onclick="document.getElementById('pin-access-token').type=document.getElementById('pin-access-token').type==='password'?'text':'password'">👁</button>
+          </div>
+          <div class="input-hint">Obtain from Pinterest's OAuth flow after app authorization</div>
+        </div>
+        <div class="field">
+          <label for="pin-board-id">Board ID</label>
+          <div class="input-group">
+            <input type="text" id="pin-board-id" placeholder="e.g. 123456789012345678" autocomplete="off" />
+          </div>
+          <div class="input-hint">The ID of the board where Pins will be published. Find it in your board URL or Pinterest API.</div>
+        </div>
+        <div class="btn-row">
+          <button type="submit" class="btn-pin" id="pin-save-btn">
+            <span class="spinner" id="pin-save-spinner"></span>
+            <span id="pin-save-btn-text">Save Credentials</span>
+          </button>
+          <button type="button" class="btn-secondary" onclick="pinTestConnection()">Test Connection</button>
+        </div>
+      </form>
+      <div class="alert success" id="pin-save-success" style="margin-top:14px"></div>
+      <div class="alert error"   id="pin-save-error"   style="margin-top:14px"></div>
+      <hr class="divider" />
+      <div class="settings-section-title">How to get Pinterest credentials</div>
+      <ol style="font-size:13px;color:#444;line-height:2;padding-left:18px">
+        <li>Go to <a href="https://developers.pinterest.com" target="_blank" style="color:#E60023;font-weight:600">Pinterest for Developers</a> and create an app</li>
+        <li>Request access to the <strong>Pins API</strong></li>
+        <li>Generate an Access Token from the app dashboard</li>
+        <li>Paste the App ID and Access Token into the fields above</li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ── AI SETTINGS (OpenAI Integration) ── -->
+  <section class="page" id="page-ai-settings">
+    <div class="page-header">
+      <h1>🪄 OpenAI Assistant</h1>
+      <p>Configure OpenAI API for auto-generating captions, titles, descriptions, and hashtags</p>
+    </div>
+    
+    <div class="card" style="max-width:560px;margin-bottom:20px">
+      <div class="settings-section-title">AI Connection Status</div>
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <span class="status-badge idle" id="ai-conn-status-badge">
+          <span class="dot grey" id="ai-conn-dot"></span>
+          <span id="ai-conn-status-text">Checking…</span>
+        </span>
+        <button class="btn-secondary" id="ai-test-btn" onclick="aiTestConnection()">
+          <span class="spinner dark" id="ai-test-spinner"></span>
+          <span id="ai-test-btn-text">Test API Connection</span>
+        </button>
+      </div>
+      <div class="alert success" id="ai-test-success" style="margin-top:12px"></div>
+      <div class="alert error"   id="ai-test-error"   style="margin-top:12px"></div>
+    </div>
+
+    <div class="card" style="max-width:560px">
+      <div class="settings-section-title">OpenAI API Configuration</div>
+      <form id="ai-settings-form">
+        <div class="field">
+          <label for="ai-api-key">OpenAI API Key</label>
+          <div class="input-group">
+            <input type="password" id="ai-api-key" placeholder="sk-proj-..." autocomplete="off" />
+            <button type="button" class="eye-btn" id="ai-eye-btn" title="Show/hide key">👁</button>
+          </div>
+          <div class="input-hint">Your API Key is kept secure and only used for server-side completions requests. Alternatively, set <code>OPENAI_API_KEY</code> environment variable.</div>
+        </div>
+        
+        <div class="field">
+          <label for="ai-model-select">Completion Model</label>
+          <div class="input-group">
+            <select id="ai-model-select" style="width: 100%; border: 1px solid #c8ccd0; border-radius: 8px; padding: 10px 12px; font-size: 14px; color: #1c1e21; outline: none; background: #fff; font-family: inherit;">
+              <option value="gpt-4o-mini">gpt-4o-mini (Default - Fast & Cost-Efficient, supports vision)</option>
+              <option value="gpt-4o">gpt-4o (High Quality, supports vision)</option>
+            </select>
+          </div>
+          <div class="input-hint">gpt-4o-mini is recommended because it is extremely cost-efficient for posting metadata and fully supports image vision.</div>
+        </div>
+
+        <div class="btn-row">
+          <button type="submit" class="btn-primary" id="ai-save-btn">
+            <span class="spinner" id="ai-save-spinner"></span>
+            <span id="ai-save-btn-text">Save Configuration</span>
+          </button>
+          <button type="button" class="btn-secondary" onclick="aiTestConnection()">Test Connection</button>
+        </div>
+      </form>
+      <div class="alert success" id="ai-save-success" style="margin-top:14px"></div>
+      <div class="alert error"   id="ai-save-error"   style="margin-top:14px"></div>
+      <hr class="divider" />
+      <div class="settings-section-title">How to get your OpenAI API Key</div>
+      <ol style="font-size:13px;color:#444;line-height:2;padding-left:18px">
+        <li>Log into the <a href="https://platform.openai.com/" target="_blank" style="color:#1877f2;font-weight:600">OpenAI Developer Platform</a></li>
+        <li>Navigate to the **API Keys** section and click **Create new secret key**</li>
+        <li>Name the key (e.g. "Social Poster Integration"), generate, and IMMEDIATELY copy it</li>
+        <li>Paste the key and click **Save Configuration** above to verify</li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ── HELP GUIDE ── -->
+  <section class="page" id="page-help">
+    <div class="page-header">
+      <h1>Setup Help Guide</h1>
+      <p>Step-by-step instructions to connect your accounts</p>
+    </div>
+
+    <div class="card" style="max-width:800px">
+      <div style="margin-bottom:30px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:15px">
+          <span style="font-size:24px">📘</span>
+          <h2 style="margin:0;color:#1877f2">Connecting Facebook</h2>
+        </div>
+        <div class="help-step" style="margin-bottom:15px;padding-left:10px;border-left:3px solid #1877f2">
+          <p><strong>1. Get your Page ID:</strong> Go to your Facebook Page > About > Page Transparency.</p>
+          <p><strong>2. Generate Access Token:</strong> Use the <a href="https://developers.facebook.com/tools/explorer/" target="_blank" style="color:#1877f2">Meta Graph API Explorer</a>.</p>
+          <p><strong>3. Permissions:</strong> Ensure you add <code>pages_manage_posts</code>, <code>pages_read_engagement</code>, and <code>publish_video</code>.</p>
+          <p><strong>4. Save:</strong> Paste the Page ID and Token in <a href="#" onclick="goTo('facebook');return false;" style="color:#1877f2">Facebook Settings</a>.</p>
+        </div>
+      </div>
+
+      <div style="margin-bottom:30px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:15px">
+          <span style="font-size:24px">📸</span>
+          <h2 style="margin:0;color:#C13584">Connecting Instagram</h2>
+        </div>
+        <div class="help-step" style="margin-bottom:15px;padding-left:10px;border-left:3px solid #C13584">
+          <p><strong>1. Link Accounts:</strong> Ensure your IG Business account is linked to your Facebook Page.</p>
+          <p><strong>2. Get IG ID:</strong> In Graph Explorer, call <code>GET /me?fields=instagram_business_account</code>.</p>
+          <p><strong>3. Permissions:</strong> Add <code>instagram_basic</code> and <code>instagram_content_publish</code>.</p>
+          <p><strong>4. Save:</strong> Paste the IG ID and same Page Token in <a href="#" onclick="goTo('instagram');return false;" style="color:#C13584">Instagram Settings</a>.</p>
+        </div>
+      </div>
+
+      <div style="margin-bottom:30px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:15px">
+          <span style="font-size:24px">📽️</span>
+          <h2 style="margin:0;color:#FF0000">Connecting YouTube</h2>
+        </div>
+        <div class="help-step" style="margin-bottom:15px;padding-left:10px;border-left:3px solid #FF0000">
+          <p><strong>1. Get Channel ID:</strong> Go to YouTube Studio > Settings > Customization > Basic Info.</p>
+          <p><strong>2. Generate Access Token:</strong> Use the <a href="https://developers.google.com/oauthplayground" target="_blank" style="color:#FF0000">Google OAuth2 Playground</a>.</p>
+          <p><strong>3. Scopes:</strong> Select <strong>YouTube Data API v3</strong> and the <code>youtube.upload</code> scope.</p>
+          <p><strong>4. Save:</strong> Paste your Channel ID and Access Token in <a href="#" onclick="goTo('youtube');return false;" style="color:#FF0000">YouTube Settings</a>.</p>
+        </div>
+      </div>
+
+      <div style="margin-bottom:30px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:15px">
+          <span style="font-size:24px">🎵</span>
+          <h2 style="margin:0;color:#000">Connecting TikTok</h2>
+        </div>
+        <div class="help-step" style="margin-bottom:15px;padding-left:10px;border-left:3px solid #000">
+          <p><strong>1. Create Developer App:</strong> Go to <a href="https://developers.tiktok.com" target="_blank" style="color:#000">TikTok for Developers</a>.</p>
+          <p><strong>2. Add Content Posting API:</strong> Enable the Content Posting API product.</p>
+          <p><strong>3. OAuth Flow:</strong> Complete the OAuth authorization flow to get your access token.</p>
+          <p><strong>4. Save:</strong> Paste your credentials in <a href="#" onclick="goTo('tiktok');return false;" style="color:#000">TikTok Settings</a>.</p>
+        </div>
+      </div>
+
+      <div style="margin-bottom:30px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:15px">
+          <span style="font-size:24px">📌</span>
+          <h2 style="margin:0;color:#E60023">Connecting Pinterest</h2>
+        </div>
+        <div class="help-step" style="margin-bottom:15px;padding-left:10px;border-left:3px solid #E60023">
+          <p><strong>1. Create Developer App:</strong> Go to <a href="https://developers.pinterest.com" target="_blank" style="color:#E60023">Pinterest for Developers</a>.</p>
+          <p><strong>2. Request Pins API:</strong> Request access to the Pins API from your dashboard.</p>
+          <p><strong>3. Generate Token:</strong> Generate an Access Token from the app dashboard.</p>
+          <p><strong>4. Save:</strong> Paste your credentials in <a href="#" onclick="goTo('pinterest');return false;" style="color:#E60023">Pinterest Settings</a>.</p>
+        </div>
+      </div>
+
+      <div class="alert info" style="margin-top:20px">
+        💡 <strong>Pro Tip:</strong> Tokens from the Explorer are short-lived (2 hours). For long-term use, use the "Access Token Tool" in the Meta Developer Portal to generate 60-day tokens.
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+// Helper to render media preview
+function renderPreview(file, containerId) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.innerHTML = "";
+  const isVideo = file.type.startsWith("video/");
+  const reader = new FileReader();
+  
+  reader.onload = e => {
+    if (isVideo) {
+      container.innerHTML = `<video src="${e.target.result}" controls style="width: 100%; max-height: 260px; display: block; border-radius: 8px;"></video>`;
+    } else {
+      container.innerHTML = `<img src="${e.target.result}" alt="preview" style="width: 100%; max-height: 260px; object-fit: cover; display: block;" />`;
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+// ── Navigation ───────────────────────────────────────────────────────────────
+function goTo(pageId) {
+  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+  document.querySelectorAll(".nav-item").forEach(n => { 
+    n.classList.remove("active"); 
+    n.classList.remove("ig-active"); 
+  });
+  
+  const pageEl = document.getElementById("page-" + pageId);
+  if (pageEl) pageEl.classList.add("active");
+  
+  const navEl = document.querySelector(`[data-page="${pageId}"]`);
+  if (navEl) {
+    if (pageId === "instagram") {
+      navEl.classList.add("ig-active");
+    } else {
+      navEl.classList.add("active");
+    }
+  }
+  
+  if (pageId === "facebook")    loadSettingsStatus();
+  if (pageId === "instagram")   igLoadSettingsStatus();
+  if (pageId === "youtube")     ytLoadSettingsStatus();
+  if (pageId === "tiktok")      tkLoadSettingsStatus();
+  if (pageId === "pinterest")   pinLoadSettingsStatus();
+  if (pageId === "ai-settings") aiLoadSettingsStatus();
+}
+
+document.querySelectorAll(".nav-item").forEach(item => {
+  item.addEventListener("click", () => goTo(item.dataset.page));
+});
+
+// ── Dashboard Setup & Dynamic Fields ─────────────────────────────────────────
+function togglePlatformFields() {
+  const selectedPlats = Array.from(document.querySelectorAll('.platform-checkbox:checked')).map(cb => cb.value);
+  const detailsCard = document.getElementById('platform-details-card');
+  
+  if (selectedPlats.length > 0) {
+    detailsCard.style.display = 'block';
+  } else {
+    detailsCard.style.display = 'none';
+  }
+  
+  ['facebook', 'instagram', 'youtube', 'tiktok', 'pinterest'].forEach(plat => {
+    const detailSection = document.getElementById('detail-' + plat);
+    if (detailSection) {
+      detailSection.style.display = selectedPlats.includes(plat) ? 'block' : 'none';
+    }
+  });
+  
+  updatePublishButtonState();
+}
+
+function updatePublishButtonState() {
+  const selectedPlats = document.querySelectorAll('.platform-checkbox:checked');
+  const fileInput = document.getElementById('dash-file-input');
+  const publishBtn = document.getElementById('dash-publish-btn');
+  const hasFile = fileInput && fileInput.files && fileInput.files[0];
+  
+  if (publishBtn) {
+    publishBtn.disabled = !(selectedPlats.length > 0 && hasFile);
+  }
+}
+
+const dashFileInput = document.getElementById("dash-file-input");
+const dashDropZone   = document.getElementById("dash-drop-zone");
+const dashPreviewWrap= document.getElementById("dash-preview-wrap");
+const dashRemoveBtn  = document.getElementById("dash-remove-btn");
+
+dashDropZone?.addEventListener("dragover",  e => { e.preventDefault(); dashDropZone.classList.add("dragover"); });
+dashDropZone?.addEventListener("dragleave", ()  => dashDropZone.classList.remove("dragover"));
+dashDropZone?.addEventListener("drop",      e  => {
+  e.preventDefault();
+  dashDropZone.classList.remove("dragover");
+  if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+    dashFileInput.files = e.dataTransfer.files;
+    handleDashFileChange();
+  }
+});
+
+dashFileInput?.addEventListener("change", handleDashFileChange);
+
+function handleDashFileChange() {
+  const file = dashFileInput.files[0];
+  if (!file) return;
+  renderPreview(file, "dash-media-preview");
+  dashPreviewWrap.style.display = "block";
+  dashDropZone.style.display    = "none";
+  updatePublishButtonState();
+  
+  document.getElementById("dash-publish-success").style.display = "none";
+  document.getElementById("dash-publish-error").style.display = "none";
+}
+
+dashRemoveBtn?.addEventListener("click", () => {
+  dashFileInput.value = "";
+  document.getElementById("dash-media-preview").innerHTML = "";
+  dashPreviewWrap.style.display = "none";
+  dashDropZone.style.display    = "block";
+  updatePublishButtonState();
+});
+
+// ── Multi-Platform Publish Action ────────────────────────────────────────────
+async function dashPublish() {
+  const successEl = document.getElementById("dash-publish-success");
+  const errorEl   = document.getElementById("dash-publish-error");
+  const submitBtn = document.getElementById("dash-publish-btn");
+  const spinner   = document.getElementById("dash-publish-spinner");
+  const btnTxt    = document.getElementById("dash-publish-text");
+  const fileInput = document.getElementById("dash-file-input");
+
+  successEl.style.display = "none";
+  errorEl.style.display   = "none";
+  successEl.innerHTML = "";
+  errorEl.innerHTML = "";
+
+  const file = fileInput.files[0];
+  if (!file) {
+    errorEl.textContent = "Please select a file first.";
+    errorEl.style.display = "block";
+    return;
+  }
+
+  const selectedPlats = Array.from(document.querySelectorAll('.platform-checkbox:checked')).map(cb => cb.value);
+  if (selectedPlats.length === 0) {
+    errorEl.textContent = "Please select at least one platform to publish to.";
+    errorEl.style.display = "block";
+    return;
+  }
+
+  submitBtn.disabled = true;
+  spinner.style.display = "inline-block";
+  btnTxt.textContent = "Publishing…";
+
+  try {
+    const fd = new FormData();
+    fd.append("file", file);
+    fd.append("platforms", JSON.stringify(selectedPlats));
+
+    if (selectedPlats.includes("facebook")) {
+      fd.append("fb_caption", document.getElementById("fb-dash-caption").value);
+      fd.append("fb_hashtags", document.getElementById("fb-dash-hashtags").value);
+    }
+    if (selectedPlats.includes("instagram")) {
+      fd.append("ig_caption", document.getElementById("ig-dash-caption").value);
+      fd.append("ig_hashtags", document.getElementById("ig-dash-hashtags").value);
+      fd.append("image_url", document.getElementById("ig-dash-url").value);
+    }
+    if (selectedPlats.includes("youtube")) {
+      fd.append("yt_title", document.getElementById("yt-dash-title").value);
+      fd.append("yt_description", document.getElementById("yt-dash-description").value);
+      fd.append("yt_tags", document.getElementById("yt-dash-hashtags").value);
+    }
+    if (selectedPlats.includes("tiktok")) {
+      fd.append("tk_caption", document.getElementById("tk-dash-caption").value);
+      fd.append("tk_hashtags", document.getElementById("tk-dash-hashtags").value);
+    }
+    if (selectedPlats.includes("pinterest")) {
+      fd.append("pin_title", document.getElementById("pin-dash-title").value);
+      fd.append("pin_description", document.getElementById("pin-dash-description").value);
+      fd.append("pin_hashtags", document.getElementById("pin-dash-hashtags").value);
+    }
+
+    const res = await fetch("/api/publish-multi", { method: "POST", body: fd });
+    const data = await res.json();
+    
+    if (data.success && data.results) {
+      let successHtml = "<strong>Publishing Results:</strong><ul style='margin-top:8px;padding-left:16px;line-height:1.6'>";
+      let errorHtml = "<strong>Failed Destinations:</strong><ul style='margin-top:8px;padding-left:16px;line-height:1.6'>";
+      let hasSuccess = false;
+      let hasError = false;
+
+      for (const [platform, result] of Object.entries(data.results)) {
+        const title = platform.charAt(0).toUpperCase() + platform.slice(1);
+        if (result.success) {
+          hasSuccess = true;
+          successHtml += `<li>✅ <strong>${title}</strong>: ${result.message} ${result.post_id ? `(ID: ${result.post_id})` : ''}</li>`;
+        } else {
+          hasError = true;
+          errorHtml += `<li>❌ <strong>${title}</strong>: ${result.message}</li>`;
+        }
+      }
+      successHtml += "</ul>";
+      errorHtml += "</ul>";
+
+      if (hasSuccess) {
+        successEl.innerHTML = successHtml;
+        successEl.style.display = "block";
+      }
+      if (hasError) {
+        errorEl.innerHTML = errorHtml;
+        errorEl.style.display = "block";
+      }
+
+      if (!hasError) {
+        // Reset full form
+        document.getElementById("dash-file-input").value = "";
+        document.getElementById("dash-media-preview").innerHTML = "";
+        document.getElementById("dash-preview-wrap").style.display = "none";
+        document.getElementById("dash-drop-zone").style.display = "block";
+        
+        document.getElementById("fb-dash-caption").value = "";
+        document.getElementById("fb-dash-hashtags").value = "";
+        document.getElementById("ig-dash-caption").value = "";
+        document.getElementById("ig-dash-hashtags").value = "";
+        document.getElementById("ig-dash-url").value = "";
+        document.getElementById("yt-dash-title").value = "";
+        document.getElementById("yt-dash-description").value = "";
+        document.getElementById("yt-dash-hashtags").value = "";
+        document.getElementById("tk-dash-caption").value = "";
+        document.getElementById("tk-dash-hashtags").value = "";
+        document.getElementById("pin-dash-title").value = "";
+        document.getElementById("pin-dash-description").value = "";
+        document.getElementById("pin-dash-hashtags").value = "";
+
+        document.querySelectorAll(".platform-checkbox").forEach(cb => cb.checked = false);
+        togglePlatformFields();
+      }
+    } else {
+      errorEl.textContent = "❌ " + (data.message || "Unknown publishing error occurred.");
+      errorEl.style.display = "block";
+    }
+  } catch (e) {
+    errorEl.textContent = "❌ Network error. Is the server running?";
+    errorEl.style.display = "block";
+  } finally {
+    submitBtn.disabled = false;
+    spinner.style.display = "none";
+    btnTxt.textContent = "🚀 Publish to Selected Platforms";
+  }
+}
+
+// ── Facebook Connection Settings ──────────────────────────────────────────────
+async function loadSettingsStatus() {
+  const cfg = await fetch("/api/settings").then(r => r.json());
+  const badge = document.getElementById("conn-status-badge");
+  const dot   = document.getElementById("conn-dot");
+  const text  = document.getElementById("conn-status-text");
+  
+  if (badge && dot && text) {
+    if (cfg.connected) {
+      badge.className = "status-badge ok";
+      dot.className   = "dot green";
+      text.textContent = "Credentials saved";
+    } else {
+      badge.className = "status-badge bad";
+      dot.className   = "dot red";
+      text.textContent = "Not configured";
+    }
+  }
+  
+  const pageIdInput = document.getElementById("s-page-id");
+  if (pageIdInput && cfg.pageId) {
+    pageIdInput.value = cfg.pageId;
+  }
+}
+
+async function testConnection() {
+  const btn     = document.getElementById("test-btn");
+  const spinner = document.getElementById("test-spinner");
+  const btnTxt  = document.getElementById("test-btn-text");
+  
+  if (btn && spinner && btnTxt) {
+    btn.disabled  = true;
+    spinner.style.display = "inline-block";
+    btnTxt.textContent    = "Testing…";
+  }
+  
+  const successEl = document.getElementById("test-success");
+  const errorEl = document.getElementById("test-error");
+  if (successEl) successEl.style.display = "none";
+  if (errorEl) errorEl.style.display = "none";
+
+  try {
+    const res  = await fetch("/api/test-connection", { method: "POST" });
+    const data = await res.json();
+    if (data.success) {
+      if (successEl) {
+        successEl.textContent = `✅ Connected! Page: "${data.pageName}" (ID: ${data.pageId})` + (data.followers !== null ? ` · ${data.followers.toLocaleString()} followers` : "");
+        successEl.style.display = "block";
+      }
+      
+      const badge = document.getElementById("conn-status-badge");
+      const dot   = document.getElementById("conn-dot");
+      const text  = document.getElementById("conn-status-text");
+      if (badge && dot && text) {
+        badge.className = "status-badge ok";
+        dot.className   = "dot green";
+        text.textContent = "Connected ✓";
+      }
+    } else {
+      if (errorEl) {
+        errorEl.textContent = "❌ " + data.message;
+        errorEl.style.display = "block";
+      }
+    }
+  } catch {
+    if (errorEl) {
+      errorEl.textContent = "❌ Could not reach the server.";
+      errorEl.style.display = "block";
+    }
+  } finally {
+    if (btn && spinner && btnTxt) {
+      btn.disabled = false;
+      spinner.style.display = "none";
+      btnTxt.textContent    = "Test Connection";
+    }
+  }
+}
+
+document.getElementById("settings-form")?.addEventListener("submit", async e => {
+  e.preventDefault();
+  const pageId      = document.getElementById("s-page-id").value.trim();
+  const accessToken = document.getElementById("s-access-token").value.trim();
+  const saveBtn  = document.getElementById("save-btn");
+  const spinner  = document.getElementById("save-spinner");
+  const saveTxt  = document.getElementById("save-btn-text");
+
+  const successEl = document.getElementById("save-success");
+  const errorEl = document.getElementById("save-error");
+  if (successEl) successEl.style.display = "none";
+  if (errorEl) errorEl.style.display = "none";
+
+  if (!pageId || !accessToken) {
+    if (errorEl) {
+      errorEl.textContent = "Both fields are required.";
+      errorEl.style.display = "block";
+    }
+    return;
+  }
+
+  if (saveBtn && spinner && saveTxt) {
+    saveBtn.disabled = true;
+    spinner.style.display = "inline-block";
+    saveTxt.textContent = "Saving…";
+  }
+
+  try {
+    const res  = await fetch("/api/settings", {
+      method:  "POST",
+      headers: { "Content-Type": "application/json" },
+      body:    JSON.stringify({ pageId, accessToken }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      if (successEl) {
+        successEl.textContent = "✅ " + data.message;
+        successEl.style.display = "block";
+      }
+      document.getElementById("s-access-token").value = "";
+      loadSettingsStatus();
+    } else {
+      if (errorEl) {
+        errorEl.textContent = "❌ " + data.message;
+        errorEl.style.display = "block";
+      }
+    }
+  } catch {
+    if (errorEl) {
+      errorEl.textContent = "❌ Network error.";
+      errorEl.style.display = "block";
+    }
+  } finally {
+    if (saveBtn && spinner && saveTxt) {
+      saveBtn.disabled = false;
+      spinner.style.display = "none";
+      saveTxt.textContent = "Save Credentials";
+    }
+  }
+});
+
+document.getElementById("eye-btn")?.addEventListener("click", () => {
+  const input = document.getElementById("s-access-token");
+  if (input) {
+    input.type = input.type === "password" ? "text" : "password";
+  }
+});
+
+// ── Instagram Connection Settings ─────────────────────────────────────────────
+async function igLoadSettingsStatus() {
+  const cfg = await fetch("/api/ig/settings").then(r => r.json());
+  const badge = document.getElementById("ig-conn-status-badge");
+  const dot   = document.getElementById("ig-conn-dot");
+  const text  = document.getElementById("ig-conn-status-text");
+  
+  if (badge && dot && text) {
+    if (cfg.connected) {
+      badge.className = "status-badge ig-ok";
+      dot.className   = "dot green";
+      text.textContent = "Credentials saved";
+    } else {
+      badge.className = "status-badge bad";
+      dot.className   = "dot red";
+      text.textContent = "Not configured";
+    }
+  }
+  
+  const igAccInput = document.getElementById("ig-account-id");
+  if (igAccInput && cfg.igAccountId) {
+    igAccInput.value = cfg.igAccountId;
+  }
+}
+
+async function igTestConnection() {
+  const btn     = document.getElementById("ig-test-btn");
+  const spinner = document.getElementById("ig-test-spinner");
+  const btnTxt  = document.getElementById("ig-test-btn-text");
+  
+  if (btn && spinner && btnTxt) {
+    btn.disabled  = true;
+    spinner.style.display = "inline-block";
+    btnTxt.textContent    = "Testing…";
+  }
+  
+  const successEl = document.getElementById("ig-test-success");
+  const errorEl = document.getElementById("ig-test-error");
+  if (successEl) successEl.style.display = "none";
+  if (errorEl) errorEl.style.display = "none";
+
+  try {
+    const res  = await fetch("/api/ig/test-connection", { method: "POST" });
+    const data = await res.json();
+    if (data.success) {
+      if (successEl) {
+        successEl.textContent = `✅ Connected! @${data.username || data.accountName} (ID: ${data.accountId})` +
+          (data.followers !== null ? ` · ${data.followers.toLocaleString()} followers` : "") +
+          (data.mediaCount !== null ? ` · ${data.mediaCount} posts` : "");
+        successEl.style.display = "block";
+      }
+      
+      const badge = document.getElementById("ig-conn-status-badge");
+      const dot   = document.getElementById("ig-conn-dot");
+      const text  = document.getElementById("ig-conn-status-text");
+      if (badge && dot && text) {
+        badge.className = "status-badge ig-ok";
+        dot.className   = "dot green";
+        text.textContent = "Connected ✓";
+      }
+    } else {
+      if (errorEl) {
+        errorEl.textContent = "❌ " + data.message;
+        errorEl.style.display = "block";
+      }
+    }
+  } catch {
+    if (errorEl) {
+      errorEl.textContent = "❌ Could not reach the server.";
+      errorEl.style.display = "block";
+    }
+  } finally {
+    if (btn && spinner && btnTxt) {
+      btn.disabled = false;
+      spinner.style.display = "none";
+      btnTxt.textContent    = "Test Connection";
+    }
+  }
+}
+
+document.getElementById("ig-settings-form")?.addEventListener("submit", async e => {
+  e.preventDefault();
+  const igAccountId   = document.getElementById("ig-account-id").value.trim();
+  const igAccessToken = document.getElementById("ig-access-token").value.trim();
+  const saveBtn  = document.getElementById("ig-save-btn");
+  const spinner  = document.getElementById("ig-save-spinner");
+  const saveTxt  = document.getElementById("ig-save-btn-text");
+
+  const successEl = document.getElementById("ig-save-success");
+  const errorEl = document.getElementById("ig-save-error");
+  if (successEl) successEl.style.display = "none";
+  if (errorEl) errorEl.style.display = "none";
+
+  if (!igAccountId || !igAccessToken) {
+    if (errorEl) {
+      errorEl.textContent = "Both fields are required.";
+      errorEl.style.display = "block";
+    }
+    return;
+  }
+
+  if (saveBtn && spinner && saveTxt) {
+    saveBtn.disabled = true;
+    spinner.style.display = "inline-block";
+    saveTxt.textContent = "Saving…";
+  }
+
+  try {
+    const res  = await fetch("/api/ig/settings", {
+      method:  "POST",
+      headers: { "Content-Type": "application/json" },
+      body:    JSON.stringify({ igAccountId, igAccessToken }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      if (successEl) {
+        successEl.textContent = "✅ " + data.message;
+        successEl.style.display = "block";
+      }
+      document.getElementById("ig-access-token").value = "";
+      igLoadSettingsStatus();
+    } else {
+      if (errorEl) {
+        errorEl.textContent = "❌ " + data.message;
+        errorEl.style.display = "block";
+      }
+    }
+  } catch {
+    if (errorEl) {
+      errorEl.textContent = "❌ Network error.";
+      errorEl.style.display = "block";
+    }
+  } finally {
+    if (saveBtn && spinner && saveTxt) {
+      saveBtn.disabled = false;
+      spinner.style.display = "none";
+      saveTxt.textContent = "Save Credentials";
+    }
+  }
+});
+
+document.getElementById("ig-eye-btn")?.addEventListener("click", () => {
+  const input = document.getElementById("ig-access-token");
+  if (input) {
+    input.type = input.type === "password" ? "text" : "password";
+  }
+});
+
+// ── YouTube Connection Settings ──────────────────────────────────────────────
+async function ytLoadSettingsStatus() {
+  const cfg = await fetch("/api/yt/settings").then(r => r.json());
+  const badge = document.getElementById("yt-conn-status-badge");
+  const dot   = document.getElementById("yt-conn-dot");
+  const text  = document.getElementById("yt-conn-status-text");
+  
+  if (badge && dot && text) {
+    if (cfg.connected) {
+      badge.className = "status-badge yt-ok";
+      dot.className   = "dot green";
+      text.textContent = "Connected";
+    } else {
+      badge.className = "status-badge bad";
+      dot.className   = "dot red";
+      text.textContent = "Not configured";
+    }
+  }
+  
+  const ytChannelInput = document.getElementById("yt-channel-id-input");
+  if (ytChannelInput && cfg.ytChannelId) {
+    ytChannelInput.value = cfg.ytChannelId;
+  }
+}
+
+async function ytTestConnection() {
+  const btn     = document.getElementById("yt-test-btn");
+  const spinner = document.getElementById("yt-test-spinner");
+  const btnTxt  = document.getElementById("yt-test-btn-text");
+  
+  if (btn && spinner && btnTxt) {
+    btn.disabled  = true;
+    spinner.style.display = "inline-block";
+    btnTxt.textContent    = "Testing…";
+  }
+  
+  const successEl = document.getElementById("yt-save-success");
+  const errorEl = document.getElementById("yt-save-error");
+  if (successEl) successEl.style.display = "none";
+  if (errorEl) errorEl.style.display = "none";
+
+  try {
+    const res  = await fetch("/api/yt/test-connection", { method: "POST" });
+    const data = await res.json();
+    if (data.success) {
+      document.getElementById("yt-save-success").textContent = `✅ Connected to "${data.channelName}" (${parseInt(data.subscribers).toLocaleString()} subs)`;
+      document.getElementById("yt-save-success").style.display = "block";
+      ytLoadSettingsStatus();
+    } else {
+      document.getElementById("yt-save-error").textContent = "❌ " + data.message;
+      document.getElementById("yt-save-error").style.display = "block";
+    }
+  } catch {
+    // ignore
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      spinner.style.display = "none";
+      btnTxt.textContent    = "Test Connection";
+    }
+  }
+}
+
+document.getElementById("yt-settings-form")?.addEventListener("submit", async e => {
+  e.preventDefault();
+  const ytChannelId   = document.getElementById("yt-channel-id-input").value.trim();
+  const ytAccessToken = document.getElementById("yt-access-token").value.trim();
+  
+  try {
+    const res = await fetch("/api/yt/settings", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ytChannelId, ytAccessToken })
+    });
+    const data = await res.json();
+    if (data.success) {
+      document.getElementById("yt-save-success").textContent = "✅ Settings saved.";
+      document.getElementById("yt-save-success").style.display = "block";
+      document.getElementById("yt-access-token").value = "";
+      ytLoadSettingsStatus();
+    }
+  } catch (err) {}
+});
+
+document.getElementById("yt-eye-btn-settings")?.addEventListener("click", () => {
+  const input = document.getElementById("yt-access-token");
+  if (input) {
+    input.type = input.type === "password" ? "text" : "password";
+  }
+});
+
+// ── OpenAI Connection Settings & Generator ─────────────────────────────────────
+async function aiLoadSettingsStatus() {
+  const cfg = await fetch("/api/ai/settings").then(r => r.json());
+  const badge = document.getElementById("ai-conn-status-badge");
+  const dot   = document.getElementById("ai-conn-dot");
+  const text  = document.getElementById("ai-conn-status-text");
+  
+  if (badge && dot && text) {
+    if (cfg.connected) {
+      badge.className = "status-badge ok";
+      dot.className   = "dot green";
+      text.textContent = "Connected (" + cfg.openaiModel + ")";
+    } else {
+      badge.className = "status-badge bad";
+      dot.className   = "dot red";
+      text.textContent = "Not configured";
+    }
+  }
+  
+  const modelSelect = document.getElementById("ai-model-select");
+  if (modelSelect && cfg.openaiModel) {
+    modelSelect.value = cfg.openaiModel;
+  }
+}
+
+async function aiTestConnection() {
+  const btn     = document.getElementById("ai-test-btn");
+  const spinner = document.getElementById("ai-test-spinner");
+  const btnTxt  = document.getElementById("ai-test-btn-text");
+  
+  if (btn && spinner && btnTxt) {
+    btn.disabled  = true;
+    spinner.style.display = "inline-block";
+    btnTxt.textContent    = "Testing…";
+  }
+  
+  const successEl = document.getElementById("ai-test-success");
+  const errorEl = document.getElementById("ai-test-error");
+  if (successEl) successEl.style.display = "none";
+  if (errorEl) errorEl.style.display = "none";
+
+  try {
+    const res  = await fetch("/api/ai/test-connection", { method: "POST" });
+    const data = await res.json();
+    if (data.success) {
+      if (successEl) {
+        successEl.textContent = `✅ Connected successfully! Model used: ${data.modelUsed}. Verified access to OpenAI API.`;
+        successEl.style.display = "block";
+      }
+      
+      const badge = document.getElementById("ai-conn-status-badge");
+      const dot   = document.getElementById("ai-conn-dot");
+      const text  = document.getElementById("ai-conn-status-text");
+      if (badge && dot && text) {
+        badge.className = "status-badge ok";
+        dot.className   = "dot green";
+        text.textContent = "Connected ✓";
+      }
+    } else {
+      if (errorEl) {
+        errorEl.textContent = "❌ " + data.message;
+        errorEl.style.display = "block";
+      }
+    }
+  } catch {
+    if (errorEl) {
+      errorEl.textContent = "❌ Could not reach the server.";
+      errorEl.style.display = "block";
+    }
+  } finally {
+    if (btn && spinner && btnTxt) {
+      btn.disabled = false;
+      spinner.style.display = "none";
+      btnTxt.textContent    = "Test API Connection";
+    }
+  }
+}
+
+document.getElementById("ai-settings-form")?.addEventListener("submit", async e => {
+  e.preventDefault();
+  const openaiApiKey = document.getElementById("ai-api-key").value.trim();
+  const openaiModel  = document.getElementById("ai-model-select").value.trim();
+  const saveBtn  = document.getElementById("ai-save-btn");
+  const spinner  = document.getElementById("ai-save-spinner");
+  const saveTxt  = document.getElementById("ai-save-btn-text");
+
+  const successEl = document.getElementById("ai-save-success");
+  const errorEl = document.getElementById("ai-save-error");
+  if (successEl) successEl.style.display = "none";
+  if (errorEl) errorEl.style.display = "none";
+
+  if (!openaiApiKey) {
+    if (errorEl) {
+      errorEl.textContent = "API Key is required.";
+      errorEl.style.display = "block";
+    }
+    return;
+  }
+
+  if (saveBtn && spinner && saveTxt) {
+    saveBtn.disabled = true;
+    spinner.style.display = "inline-block";
+    saveTxt.textContent = "Saving…";
+  }
+
+  try {
+    const res  = await fetch("/api/ai/settings", {
+      method:  "POST",
+      headers: { "Content-Type": "application/json" },
+      body:    JSON.stringify({ openaiApiKey, openaiModel }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      if (successEl) {
+        successEl.textContent = "✅ " + data.message;
+        successEl.style.display = "block";
+      }
+      document.getElementById("ai-api-key").value = "";
+      aiLoadSettingsStatus();
+    } else {
+      if (errorEl) {
+        errorEl.textContent = "❌ " + data.message;
+        errorEl.style.display = "block";
+      }
+    }
+  } catch {
+    if (errorEl) {
+      errorEl.textContent = "❌ Network error.";
+      errorEl.style.display = "block";
+    }
+  } finally {
+    if (saveBtn && spinner && saveTxt) {
+      saveBtn.disabled = false;
+      spinner.style.display = "none";
+      saveTxt.textContent = "Save Configuration";
+    }
+  }
+});
+
+document.getElementById("ai-eye-btn")?.addEventListener("click", () => {
+  const input = document.getElementById("ai-api-key");
+  if (input) {
+    input.type = input.type === "password" ? "text" : "password";
+  }
+});
+
+async function generateAiContent() {
+  const successEl = document.getElementById("ai-gen-success");
+  const errorEl   = document.getElementById("ai-gen-error");
+  const submitBtn = document.getElementById("ai-gen-btn");
+  const spinner   = document.getElementById("ai-gen-spinner");
+  const btnTxt    = document.getElementById("ai-gen-text");
+  const fileInput = document.getElementById("dash-file-input");
+
+  successEl.style.display = "none";
+  errorEl.style.display   = "none";
+  successEl.textContent = "";
+  errorEl.textContent = "";
+
+  const selectedPlats = Array.from(document.querySelectorAll('.platform-checkbox:checked')).map(cb => cb.value);
+  if (selectedPlats.length === 0) {
+    errorEl.textContent = "Please select at least one platform before generating content.";
+    errorEl.style.display = "block";
+    return;
+  }
+
+  submitBtn.disabled = true;
+  spinner.style.display = "inline-block";
+  btnTxt.textContent = "Generating Content…";
+
+  try {
+    const fd = new FormData();
+    const file = fileInput.files[0];
+    if (file) {
+      fd.append("file", file);
+    }
+    fd.append("platforms", JSON.stringify(selectedPlats));
+    fd.append("context_prompt", document.getElementById("ai-dash-prompt").value);
+
+    const res = await fetch("/api/generate-content", { method: "POST", body: fd });
+    const data = await res.json();
+    
+    if (data.success && data.generated) {
+      const generated = data.generated;
+      
+      // Facebook
+      if (generated.facebook) {
+        if (document.getElementById("fb-dash-caption")) {
+          document.getElementById("fb-dash-caption").value = generated.facebook.caption || "";
+        }
+        if (document.getElementById("fb-dash-hashtags")) {
+          document.getElementById("fb-dash-hashtags").value = generated.facebook.hashtags || "";
+        }
+      }
+      
+      // Instagram
+      if (generated.instagram) {
+        if (document.getElementById("ig-dash-caption")) {
+          document.getElementById("ig-dash-caption").value = generated.instagram.caption || "";
+        }
+        if (document.getElementById("ig-dash-hashtags")) {
+          document.getElementById("ig-dash-hashtags").value = generated.instagram.hashtags || "";
+        }
+      }
+      
+      // YouTube
+      if (generated.youtube) {
+        if (document.getElementById("yt-dash-title")) {
+          document.getElementById("yt-dash-title").value = generated.youtube.title || "";
+        }
+        if (document.getElementById("yt-dash-description")) {
+          document.getElementById("yt-dash-description").value = generated.youtube.description || "";
+        }
+        if (document.getElementById("yt-dash-hashtags")) {
+          document.getElementById("yt-dash-hashtags").value = generated.youtube.tags || generated.youtube.hashtags || "";
+        }
+      }
+      
+      // TikTok
+      if (generated.tiktok) {
+        if (document.getElementById("tk-dash-caption")) {
+          document.getElementById("tk-dash-caption").value = generated.tiktok.caption || "";
+        }
+        if (document.getElementById("tk-dash-hashtags")) {
+          document.getElementById("tk-dash-hashtags").value = generated.tiktok.hashtags || "";
+        }
+      }
+      
+      // Pinterest
+      if (generated.pinterest) {
+        if (document.getElementById("pin-dash-title")) {
+          document.getElementById("pin-dash-title").value = generated.pinterest.title || "";
+        }
+        if (document.getElementById("pin-dash-description")) {
+          document.getElementById("pin-dash-description").value = generated.pinterest.description || "";
+        }
+        if (document.getElementById("pin-dash-hashtags")) {
+          document.getElementById("pin-dash-hashtags").value = generated.pinterest.hashtags || "";
+        }
+      }
+
+      successEl.textContent = "✨ Content generated & populated successfully!";
+      successEl.style.display = "block";
+    } else {
+      errorEl.textContent = "❌ " + (data.message || "Failed to generate captions.");
+      errorEl.style.display = "block";
+    }
+  } catch (err) {
+    errorEl.textContent = "❌ Network error. Is the server running?";
+    errorEl.style.display = "block";
+  } finally {
+    submitBtn.disabled = false;
+    spinner.style.display = "none";
+    btnTxt.textContent = "✨ Auto-Generate Captions & Hashtags";
+  }
+}
+
+// ── TikTok Connection Settings ───────────────────────────────────────────────
+async function tkLoadSettingsStatus() {
+  const cfg = await fetch("/api/tiktok/settings").then(r => r.json());
+  const badge = document.getElementById("tk-conn-status-badge");
+  const dot   = document.getElementById("tk-conn-dot");
+  const text  = document.getElementById("tk-conn-status-text");
+  if (badge && dot && text) {
+    if (cfg.connected) {
+      badge.className = "status-badge ok";
+      dot.className   = "dot green";
+      text.textContent = "Credentials saved";
+    } else {
+      badge.className = "status-badge bad";
+      dot.className   = "dot red";
+      text.textContent = "Not configured";
+    }
+  }
+  const keyInput = document.getElementById("tk-client-key");
+  if (keyInput && cfg.tkClientKey) keyInput.value = cfg.tkClientKey;
+}
+
+async function tkTestConnection() {
+  const btn     = document.getElementById("tk-test-btn");
+  const spinner = document.getElementById("tk-test-spinner");
+  const btnTxt  = document.getElementById("tk-test-btn-text");
+  if (btn && spinner && btnTxt) {
+    btn.disabled = true;
+    spinner.style.display = "inline-block";
+    btnTxt.textContent = "Testing…";
+  }
+  const successEl = document.getElementById("tk-test-success");
+  const errorEl   = document.getElementById("tk-test-error");
+  if (successEl) successEl.style.display = "none";
+  if (errorEl) errorEl.style.display = "none";
+  try {
+    const res  = await fetch("/api/tiktok/test-connection", { method: "POST" });
+    const data = await res.json();
+    if (data.success) {
+      if (successEl) {
+        successEl.textContent = `✅ Connected! @${data.displayName}`;
+        successEl.style.display = "block";
+      }
+      const badge = document.getElementById("tk-conn-status-badge");
+      const dot   = document.getElementById("tk-conn-dot");
+      const text  = document.getElementById("tk-conn-status-text");
+      if (badge && dot && text) {
+        badge.className = "status-badge ok";
+        dot.className   = "dot green";
+        text.textContent = "Connected ✓";
+      }
+    } else {
+      if (errorEl) { errorEl.textContent = "❌ " + data.message; errorEl.style.display = "block"; }
+    }
+  } catch {
+    if (errorEl) { errorEl.textContent = "❌ Could not reach the server."; errorEl.style.display = "block"; }
+  } finally {
+    if (btn && spinner && btnTxt) {
+      btn.disabled = false;
+      spinner.style.display = "none";
+      btnTxt.textContent = "Test Connection";
+    }
+  }
+}
+
+document.getElementById("tk-settings-form")?.addEventListener("submit", async e => {
+  e.preventDefault();
+  const tkClientKey   = document.getElementById("tk-client-key").value.trim();
+  const tkAccessToken = document.getElementById("tk-access-token").value.trim();
+  const saveBtn = document.getElementById("tk-save-btn");
+  const spinner = document.getElementById("tk-save-spinner");
+  const saveTxt = document.getElementById("tk-save-btn-text");
+  const successEl = document.getElementById("tk-save-success");
+  const errorEl   = document.getElementById("tk-save-error");
+  if (successEl) successEl.style.display = "none";
+  if (errorEl) errorEl.style.display = "none";
+  if (!tkClientKey || !tkAccessToken) {
+    if (errorEl) { errorEl.textContent = "Both fields are required."; errorEl.style.display = "block"; }
+    return;
+  }
+  if (saveBtn && spinner && saveTxt) {
+    saveBtn.disabled = true;
+    spinner.style.display = "inline-block";
+    saveTxt.textContent = "Saving…";
+  }
+  try {
+    const res = await fetch("/api/tiktok/settings", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ tkClientKey, tkAccessToken })
+    });
+    const data = await res.json();
+    if (data.success) {
+      if (successEl) { successEl.textContent = "✅ " + data.message; successEl.style.display = "block"; }
+      document.getElementById("tk-access-token").value = "";
+      tkLoadSettingsStatus();
+    } else {
+      if (errorEl) { errorEl.textContent = "❌ " + data.message; errorEl.style.display = "block"; }
+    }
+  } catch {
+    if (errorEl) { errorEl.textContent = "❌ Network error."; errorEl.style.display = "block"; }
+  } finally {
+    if (saveBtn && spinner && saveTxt) {
+      saveBtn.disabled = false;
+      spinner.style.display = "none";
+      saveTxt.textContent = "Save Credentials";
+    }
+  }
+});
+
+// ── Pinterest Connection Settings ────────────────────────────────────────────
+async function pinLoadSettingsStatus() {
+  const cfg = await fetch("/api/pinterest/settings").then(r => r.json());
+  const badge = document.getElementById("pin-conn-status-badge");
+  const dot   = document.getElementById("pin-conn-dot");
+  const text  = document.getElementById("pin-conn-status-text");
+  if (badge && dot && text) {
+    if (cfg.connected) {
+      badge.className = "status-badge ok";
+      dot.className   = "dot green";
+      text.textContent = "Credentials saved";
+    } else {
+      badge.className = "status-badge bad";
+      dot.className   = "dot red";
+      text.textContent = "Not configured";
+    }
+  }
+  const appInput = document.getElementById("pin-app-id");
+  if (appInput && cfg.pinAppId) appInput.value = cfg.pinAppId;
+  const boardInput = document.getElementById("pin-board-id");
+  if (boardInput && cfg.pinBoardId) boardInput.value = cfg.pinBoardId;
+}
+
+async function pinTestConnection() {
+  const btn     = document.getElementById("pin-test-btn");
+  const spinner = document.getElementById("pin-test-spinner");
+  const btnTxt  = document.getElementById("pin-test-btn-text");
+  if (btn && spinner && btnTxt) {
+    btn.disabled = true;
+    spinner.style.display = "inline-block";
+    btnTxt.textContent = "Testing…";
+  }
+  const successEl = document.getElementById("pin-test-success");
+  const errorEl   = document.getElementById("pin-test-error");
+  if (successEl) successEl.style.display = "none";
+  if (errorEl) errorEl.style.display = "none";
+  try {
+    const res  = await fetch("/api/pinterest/test-connection", { method: "POST" });
+    const data = await res.json();
+    if (data.success) {
+      if (successEl) {
+        successEl.textContent = `✅ Connected! @${data.username} · Board ID: ${data.boardId}`;
+        successEl.style.display = "block";
+      }
+      const badge = document.getElementById("pin-conn-status-badge");
+      const dot   = document.getElementById("pin-conn-dot");
+      const text  = document.getElementById("pin-conn-status-text");
+      if (badge && dot && text) {
+        badge.className = "status-badge ok";
+        dot.className   = "dot green";
+        text.textContent = "Connected ✓";
+      }
+    } else {
+      if (errorEl) { errorEl.textContent = "❌ " + data.message; errorEl.style.display = "block"; }
+    }
+  } catch {
+    if (errorEl) { errorEl.textContent = "❌ Could not reach the server."; errorEl.style.display = "block"; }
+  } finally {
+    if (btn && spinner && btnTxt) {
+      btn.disabled = false;
+      spinner.style.display = "none";
+      btnTxt.textContent = "Test Connection";
+    }
+  }
+}
+
+document.getElementById("pin-settings-form")?.addEventListener("submit", async e => {
+  e.preventDefault();
+  const pinAppId       = document.getElementById("pin-app-id").value.trim();
+  const pinAccessToken = document.getElementById("pin-access-token").value.trim();
+  const pinBoardId     = document.getElementById("pin-board-id").value.trim();
+  const saveBtn = document.getElementById("pin-save-btn");
+  const spinner = document.getElementById("pin-save-spinner");
+  const saveTxt = document.getElementById("pin-save-btn-text");
+  const successEl = document.getElementById("pin-save-success");
+  const errorEl   = document.getElementById("pin-save-error");
+  if (successEl) successEl.style.display = "none";
+  if (errorEl) errorEl.style.display = "none";
+  if (!pinAppId || !pinAccessToken) {
+    if (errorEl) { errorEl.textContent = "App ID and Access Token are required."; errorEl.style.display = "block"; }
+    return;
+  }
+  if (saveBtn && spinner && saveTxt) {
+    saveBtn.disabled = true;
+    spinner.style.display = "inline-block";
+    saveTxt.textContent = "Saving…";
+  }
+  try {
+    const res = await fetch("/api/pinterest/settings", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ pinAppId, pinAccessToken, pinBoardId })
+    });
+    const data = await res.json();
+    if (data.success) {
+      if (successEl) { successEl.textContent = "✅ " + data.message; successEl.style.display = "block"; }
+      document.getElementById("pin-access-token").value = "";
+      pinLoadSettingsStatus();
+    } else {
+      if (errorEl) { errorEl.textContent = "❌ " + data.message; errorEl.style.display = "block"; }
+    }
+  } catch {
+    if (errorEl) { errorEl.textContent = "❌ Network error."; errorEl.style.display = "block"; }
+  } finally {
+    if (saveBtn && spinner && saveTxt) {
+      saveBtn.disabled = false;
+      spinner.style.display = "none";
+      saveTxt.textContent = "Save Credentials";
+    }
+  }
+});
+
+function refreshDashboard() {
+  // Empty stub to prevent errors from other parts of the application calling refresh
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  loadSettingsStatus();
+  igLoadSettingsStatus();
+  ytLoadSettingsStatus();
+  tkLoadSettingsStatus();
+  pinLoadSettingsStatus();
+  aiLoadSettingsStatus();
+});
+</script>
+</body>
+</html>
