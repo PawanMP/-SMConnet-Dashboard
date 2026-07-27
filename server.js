@@ -567,25 +567,152 @@ app.post("/api/pinterest/test-connection", async (_req, res) => {
   }
 });
 
-// ─── Multi-Platform Publishing ────────────────────────────────────────────────
+// ─── Reusable Per-Platform Publish Helper ─────────────────────────────────────
+
+async function executePlatformPublish(platform, payload, filePath) {
+  const cfg = loadConfig();
+  const fileName = payload.fileName || path.basename(filePath || "");
+  const isVideo = /mp4|mov|avi|mkv/.test(path.extname(fileName).toLowerCase());
+
+  if (platform === "facebook") {
+    if (!cfg.pageId || !cfg.accessToken) return { success: false, message: "Facebook credentials not configured." };
+    const captionField = (payload.fb_caption || "").trim();
+    const hashtagsField = (payload.fb_hashtags || "").trim();
+    const fullCaption = hashtagsField ? `${captionField}\n\n${hashtagsField}` : captionField;
+
+    const form = new FormData();
+    form.append("access_token", cfg.accessToken);
+
+    if (isVideo) {
+      form.append("source", fs.createReadStream(filePath));
+      form.append("description", fullCaption);
+      const { data } = await axios.post(
+        `https://graph.facebook.com/${cfg.pageId}/videos`, form,
+        { headers: form.getHeaders(), maxContentLength: Infinity, maxBodyLength: Infinity }
+      );
+      return { success: true, message: "Video posted successfully!", post_id: data.id };
+    } else {
+      form.append("source", fs.createReadStream(filePath));
+      form.append("caption", fullCaption);
+      const { data } = await axios.post(
+        `https://graph.facebook.com/${cfg.pageId}/photos`, form,
+        { headers: form.getHeaders() }
+      );
+      return { success: true, message: "Photo posted successfully!", post_id: data.post_id || data.id };
+    }
+  }
+
+  if (platform === "instagram") {
+    if (!cfg.igAccountId || !cfg.igAccessToken) return { success: false, message: "Instagram credentials not configured." };
+    const captionField = (payload.ig_caption || "").trim();
+    const hashtagsField = (payload.ig_hashtags || "").trim();
+    const fullCaption = hashtagsField ? `${captionField}\n\n${hashtagsField}` : captionField;
+
+    const imageUrl = (payload.image_url || "").trim();
+    if (!imageUrl) return { success: false, message: "Instagram API requires a public URL for media." };
+
+    const params = { caption: fullCaption, access_token: cfg.igAccessToken };
+    if (isVideo) { params.media_type = "REELS"; params.video_url = imageUrl; }
+    else { params.image_url = imageUrl; }
+
+    const containerRes = await axios.post(`https://graph.facebook.com/v21.0/${cfg.igAccountId}/media`, null, { params });
+    const creationId = containerRes.data.id;
+    const publishRes = await axios.post(`https://graph.facebook.com/v21.0/${cfg.igAccountId}/media_publish`, null, {
+      params: { creation_id: creationId, access_token: cfg.igAccessToken }
+    });
+    return { success: true, message: "Posted successfully!", post_id: publishRes.data.id };
+  }
+
+  if (platform === "youtube") {
+    if (!cfg.ytAccessToken) return { success: false, message: "YouTube credentials not configured." };
+    if (!isVideo) return { success: false, message: "YouTube requires a video file." };
+
+    const oauth2Client = new google.auth.OAuth2();
+    oauth2Client.setCredentials({ access_token: cfg.ytAccessToken });
+    const youtube = google.youtube({ version: "v3", auth: oauth2Client });
+
+    const title = payload.yt_title || "New Video";
+    const descField = (payload.yt_description || "").trim();
+    const tagsField = (payload.yt_tags || "").trim();
+    const fullDesc = tagsField ? `${descField}\n\n${tagsField}` : descField;
+
+    const response = await youtube.videos.insert({
+      part: "snippet,status",
+      requestBody: { snippet: { title, description: fullDesc }, status: { privacyStatus: "public" } },
+      media: { body: fs.createReadStream(filePath) }
+    });
+    return { success: true, message: "Uploaded to YouTube successfully!", post_id: response.data.id };
+  }
+
+  if (platform === "tiktok") {
+    if (!cfg.tkAccessToken) return { success: false, message: "TikTok credentials not configured." };
+    if (!isVideo) return { success: false, message: "TikTok requires a video file." };
+
+    const tkCaption = (payload.tk_caption || "").trim();
+    const tkHashtags = (payload.tk_hashtags || "").trim();
+    const fullCaption = tkHashtags ? `${tkCaption} ${tkHashtags}` : tkCaption;
+    const fileSize = fs.statSync(filePath).size;
+
+    const initRes = await axios.post(
+      "https://open.tiktokapis.com/v2/post/publish/video/init/",
+      {
+        post_info: { title: fullCaption.slice(0, 150), privacy_level: "PUBLIC_TO_EVERYONE", video_cover_timestamp_ms: 1000 },
+        source_info: { source: "FILE_UPLOAD", video_size: fileSize }
+      },
+      { headers: { Authorization: `Bearer ${cfg.tkAccessToken}`, "Content-Type": "application/json" } }
+    );
+
+    if (initRes.data?.error?.code !== "ok") throw new Error(initRes.data?.error?.message || "TikTok init failed.");
+    const uploadUrl = initRes.data.data.upload_url;
+    const publishId = initRes.data.data.publish_id;
+
+    await axios.put(uploadUrl, fs.createReadStream(filePath), {
+      headers: { "Content-Type": "video/mp4", "Content-Length": fileSize },
+      maxContentLength: Infinity, maxBodyLength: Infinity
+    });
+    return { success: true, message: "Video uploaded/queued on TikTok!", post_id: publishId };
+  }
+
+  if (platform === "pinterest") {
+    if (!cfg.pinAccessToken) return { success: false, message: "Pinterest credentials not configured." };
+    if (!cfg.pinBoardId) return { success: false, message: "Pinterest requires a Board ID." };
+
+    const pinTitle = (payload.pin_title || "Pin from Social Dashboard").trim();
+    const pinDesc = (payload.pin_description || "").trim();
+    const pinHashtags = (payload.pin_hashtags || "").trim();
+    const fullDesc = pinHashtags ? `${pinDesc}\n\n${pinHashtags}` : pinDesc;
+
+    const imageUrl = (payload.image_url || "").trim();
+    if (!imageUrl) return { success: false, message: "Pinterest API requires a public image URL." };
+
+    const pinRes = await axios.post(
+      "https://api.pinterest.com/v5/pins",
+      {
+        title: pinTitle.slice(0, 100), description: fullDesc.slice(0, 800),
+        board_id: cfg.pinBoardId,
+        media_source: { source_type: "image_url", url: imageUrl }
+      },
+      { headers: { Authorization: `Bearer ${cfg.pinAccessToken}`, "Content-Type": "application/json" } }
+    );
+    return { success: true, message: "Pin created successfully!", post_id: pinRes.data.id };
+  }
+
+  return { success: false, message: `Unsupported platform: ${platform}` };
+}
+
+// ─── Multi-Platform Publishing (Immediate) ────────────────────────────────────
 
 app.post("/api/publish-multi", upload.single("file"), async (req, res) => {
   const filePath = req.file?.path ?? null;
   const fileName = req.file?.originalname ?? "";
-  const isVideo  = /mp4|mov|avi|mkv/.test(path.extname(fileName).toLowerCase());
 
   if (!filePath) {
     return res.status(400).json({ success: false, message: "No file provided." });
   }
 
   let platforms = [];
-  try {
-    platforms = JSON.parse(req.body.platforms || "[]");
-  } catch (e) {
-    if (typeof req.body.platforms === "string") {
-      platforms = [req.body.platforms];
-    }
-  }
+  try { platforms = JSON.parse(req.body.platforms || "[]"); }
+  catch (e) { if (typeof req.body.platforms === "string") platforms = [req.body.platforms]; }
 
   if (platforms.length === 0) {
     if (fs.existsSync(filePath)) fs.unlink(filePath, () => {});
@@ -593,229 +720,10 @@ app.post("/api/publish-multi", upload.single("file"), async (req, res) => {
   }
 
   const results = {};
-  const cfg = loadConfig();
-
   for (const platform of platforms) {
     try {
-      if (platform === "facebook") {
-        if (!cfg.pageId || !cfg.accessToken) {
-          results.facebook = { success: false, message: "Facebook credentials not configured." };
-          continue;
-        }
-        const captionField = (req.body.fb_caption || "").trim();
-        const hashtagsField = (req.body.fb_hashtags || "").trim();
-        const fullCaption = hashtagsField ? `${captionField}\n\n${hashtagsField}` : captionField;
-
-        const form = new FormData();
-        form.append("access_token", cfg.accessToken);
-
-        if (isVideo) {
-          form.append("source", fs.createReadStream(filePath));
-          form.append("description", fullCaption);
-          const { data } = await axios.post(
-            `https://graph.facebook.com/${cfg.pageId}/videos`,
-            form,
-            { headers: form.getHeaders(), maxContentLength: Infinity, maxBodyLength: Infinity }
-          );
-          results.facebook = { success: true, message: "Video posted successfully!", post_id: data.id };
-        } else {
-          form.append("source", fs.createReadStream(filePath));
-          form.append("caption", fullCaption);
-          const { data } = await axios.post(
-            `https://graph.facebook.com/${cfg.pageId}/photos`,
-            form,
-            { headers: form.getHeaders() }
-          );
-          results.facebook = { success: true, message: "Photo posted successfully!", post_id: data.post_id || data.id };
-        }
-      } 
-      
-      else if (platform === "instagram") {
-        if (!cfg.igAccountId || !cfg.igAccessToken) {
-          results.instagram = { success: false, message: "Instagram credentials not configured." };
-          continue;
-        }
-        const captionField = (req.body.ig_caption || "").trim();
-        const hashtagsField = (req.body.ig_hashtags || "").trim();
-        const fullCaption = hashtagsField ? `${captionField}\n\n${hashtagsField}` : captionField;
-
-        const imageUrl = (req.body.image_url || "").trim();
-        if (!imageUrl) {
-          results.instagram = { 
-            success: false, 
-            message: "Instagram API requires a public URL for videos/images. Please configure an external storage URL." 
-          };
-          continue;
-        }
-
-        const params = {
-          caption: fullCaption,
-          access_token: cfg.igAccessToken,
-        };
-        if (isVideo) {
-          params.media_type = "REELS";
-          params.video_url = imageUrl;
-        } else {
-          params.image_url = imageUrl;
-        }
-
-        const containerRes = await axios.post(
-          `https://graph.facebook.com/v21.0/${cfg.igAccountId}/media`,
-          null,
-          { params }
-        );
-        const creationId = containerRes.data.id;
-
-        const publishRes = await axios.post(
-          `https://graph.facebook.com/v21.0/${cfg.igAccountId}/media_publish`,
-          null,
-          {
-            params: {
-              creation_id: creationId,
-              access_token: cfg.igAccessToken,
-            },
-          }
-        );
-        results.instagram = { success: true, message: "Posted successfully!", post_id: publishRes.data.id };
-      } 
-      
-      else if (platform === "youtube") {
-        if (!cfg.ytAccessToken) {
-          results.youtube = { success: false, message: "YouTube credentials not configured." };
-          continue;
-        }
-        if (!isVideo) {
-          results.youtube = { success: false, message: "YouTube requires a video file." };
-          continue;
-        }
-
-        const oauth2Client = new google.auth.OAuth2();
-        oauth2Client.setCredentials({ access_token: cfg.ytAccessToken });
-        const youtube = google.youtube({ version: "v3", auth: oauth2Client });
-
-        const title = req.body.yt_title || "New Video";
-        const descField = (req.body.yt_description || "").trim();
-        const tagsField = (req.body.yt_tags || "").trim();
-        const fullDesc = tagsField ? `${descField}\n\n${tagsField}` : descField;
-
-        const response = await youtube.videos.insert({
-          part: "snippet,status",
-          requestBody: {
-            snippet: {
-              title: title,
-              description: fullDesc,
-            },
-            status: {
-              privacyStatus: "public",
-            },
-          },
-          media: {
-            body: fs.createReadStream(filePath),
-          },
-        });
-        results.youtube = { success: true, message: "Uploaded to YouTube successfully!", post_id: response.data.id };
-      } 
-      
-      else if (platform === "tiktok") {
-        if (!cfg.tkAccessToken) {
-          results.tiktok = { success: false, message: "TikTok credentials not configured." };
-          continue;
-        }
-        if (!isVideo) {
-          results.tiktok = { success: false, message: "TikTok requires a video file." };
-          continue;
-        }
-
-        const tkCaption = (req.body.tk_caption || "").trim();
-        const tkHashtags = (req.body.tk_hashtags || "").trim();
-        const fullCaption = tkHashtags ? `${tkCaption} ${tkHashtags}` : tkCaption;
-        const fileSize = fs.statSync(filePath).size;
-
-        // Step 1: Initialize Video Upload
-        const initRes = await axios.post(
-          "https://open.tiktokapis.com/v2/post/publish/video/init/",
-          {
-            post_info: {
-              title: fullCaption.slice(0, 150), // TikTok title field helper length limit
-              privacy_level: "PUBLIC_TO_EVERYONE",
-              video_cover_timestamp_ms: 1000
-            },
-            source_info: {
-              source: "FILE_UPLOAD",
-              video_size: fileSize
-            }
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${cfg.tkAccessToken}`,
-              "Content-Type": "application/json"
-            }
-          }
-        );
-
-        if (initRes.data?.error?.code !== "ok") {
-          throw new Error(initRes.data?.error?.message || "Failed initializing TikTok video upload.");
-        }
-
-        const uploadUrl = initRes.data.data.upload_url;
-        const publishId = initRes.data.data.publish_id;
-
-        // Step 2: Upload Video File Content via PUT
-        await axios.put(uploadUrl, fs.createReadStream(filePath), {
-          headers: {
-            "Content-Type": "video/mp4",
-            "Content-Length": fileSize
-          },
-          maxContentLength: Infinity,
-          maxBodyLength: Infinity
-        });
-
-        results.tiktok = { success: true, message: "Video uploaded/queued on TikTok!", post_id: publishId };
-      } 
-      
-      else if (platform === "pinterest") {
-        if (!cfg.pinAccessToken) {
-          results.pinterest = { success: false, message: "Pinterest credentials not configured." };
-          continue;
-        }
-        if (!cfg.pinBoardId) {
-          results.pinterest = { success: false, message: "Pinterest requires a Board ID. Please set it in Pinterest Settings." };
-          continue;
-        }
-
-        const pinTitle = (req.body.pin_title || "Pin from Social Dashboard").trim();
-        const pinDesc = (req.body.pin_description || "").trim();
-        const pinHashtags = (req.body.pin_hashtags || "").trim();
-        const fullDesc = pinHashtags ? `${pinDesc}\n\n${pinHashtags}` : pinDesc;
-
-        // Pinterest requires an accessible URL
-        const imageUrl = (req.body.image_url || "").trim();
-        if (!imageUrl) {
-          results.pinterest = { success: false, message: "Pinterest API requires a public image URL. Please enter one in the Instagram URL/Pinterest field." };
-          continue;
-        }
-
-        const pinRes = await axios.post(
-          "https://api.pinterest.com/v5/pins",
-          {
-            title: pinTitle.slice(0, 100),
-            description: fullDesc.slice(0, 800),
-            board_id: cfg.pinBoardId,
-            media_source: {
-              source_type: "image_url",
-              url: imageUrl
-            }
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${cfg.pinAccessToken}`,
-              "Content-Type": "application/json"
-            }
-          }
-        );
-
-        results.pinterest = { success: true, message: "Pin created successfully!", post_id: pinRes.data.id };
-      }
+      const payload = { fileName, ...req.body };
+      results[platform] = await executePlatformPublish(platform, payload, filePath);
     } catch (err) {
       const msg = err.response?.data?.error?.message || err.message;
       results[platform] = { success: false, message: msg };
@@ -828,6 +736,224 @@ app.post("/api/publish-multi", upload.single("file"), async (req, res) => {
 
   res.json({ success: true, results });
 });
+
+// ═══════════════════════════════════════════════════════════════════════════════
+//  SCHEDULED POSTS SYSTEM
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const SCHEDULED_POSTS_FILE = path.join(__dirname, "scheduled_posts.json");
+
+function loadScheduledPosts() {
+  if (!fs.existsSync(SCHEDULED_POSTS_FILE)) return [];
+  try { return JSON.parse(fs.readFileSync(SCHEDULED_POSTS_FILE, "utf8")); }
+  catch { return []; }
+}
+
+function saveScheduledPosts(posts) {
+  fs.writeFileSync(SCHEDULED_POSTS_FILE, JSON.stringify(posts, null, 2));
+}
+
+// POST /api/schedule-post  →  create a scheduled post
+app.post("/api/schedule-post", upload.single("file"), async (req, res) => {
+  const filePath = req.file?.path ?? null;
+  const fileName = req.file?.originalname ?? "";
+
+  if (!filePath) {
+    return res.status(400).json({ success: false, message: "Media file is required for scheduling." });
+  }
+
+  let platforms = [];
+  try { platforms = JSON.parse(req.body.platforms || "[]"); }
+  catch (e) { if (typeof req.body.platforms === "string") platforms = [req.body.platforms]; }
+
+  if (platforms.length === 0) {
+    if (fs.existsSync(filePath)) fs.unlink(filePath, () => {});
+    return res.status(400).json({ success: false, message: "No platforms selected." });
+  }
+
+  // Parse per-platform schedule times
+  let schedules = {};
+  try { if (req.body.schedules) schedules = JSON.parse(req.body.schedules); } catch(e) {}
+
+  const globalScheduleTime = req.body.global_schedule_time || new Date().toISOString();
+
+  const posts = loadScheduledPosts();
+  const newPostId = "sched_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
+
+  const platformData = {};
+  for (const plat of platforms) {
+    const scheduledAt = schedules[plat]
+      ? new Date(schedules[plat]).toISOString()
+      : new Date(globalScheduleTime).toISOString();
+
+    platformData[plat] = {
+      scheduledAt,
+      status: "pending",
+      resultMessage: "",
+      postId: "",
+      payload: {
+        fileName,
+        image_url: req.body.image_url || "",
+        fb_caption: req.body.fb_caption || "",
+        fb_hashtags: req.body.fb_hashtags || "",
+        ig_caption: req.body.ig_caption || "",
+        ig_hashtags: req.body.ig_hashtags || "",
+        yt_title: req.body.yt_title || "",
+        yt_description: req.body.yt_description || "",
+        yt_tags: req.body.yt_tags || "",
+        tk_caption: req.body.tk_caption || "",
+        tk_hashtags: req.body.tk_hashtags || "",
+        pin_title: req.body.pin_title || "",
+        pin_description: req.body.pin_description || "",
+        pin_hashtags: req.body.pin_hashtags || ""
+      }
+    };
+  }
+
+  const newPost = {
+    id: newPostId,
+    createdAt: new Date().toISOString(),
+    filePath,
+    fileName,
+    status: "scheduled",
+    platforms: platformData
+  };
+
+  posts.unshift(newPost);
+  saveScheduledPosts(posts);
+
+  res.json({ success: true, message: "Post scheduled successfully!", postId: newPostId, post: newPost });
+});
+
+// GET /api/scheduled-posts  →  list all scheduled posts
+app.get("/api/scheduled-posts", (_req, res) => {
+  const posts = loadScheduledPosts();
+  res.json({ success: true, posts });
+});
+
+// DELETE /api/scheduled-posts/:id  →  cancel a scheduled post
+app.delete("/api/scheduled-posts/:id", (req, res) => {
+  const posts = loadScheduledPosts();
+  const idx = posts.findIndex(p => p.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ success: false, message: "Scheduled post not found." });
+
+  const post = posts[idx];
+
+  // Cancel all pending platform items
+  for (const [, item] of Object.entries(post.platforms)) {
+    if (item.status === "pending") {
+      item.status = "cancelled";
+      item.resultMessage = "Cancelled by user.";
+    }
+  }
+  post.status = "cancelled";
+
+  // Clean up file if no platform succeeded
+  const anySuccess = Object.values(post.platforms).some(p => p.status === "success");
+  if (!anySuccess && post.filePath && fs.existsSync(post.filePath)) {
+    fs.unlink(post.filePath, () => {});
+  }
+
+  saveScheduledPosts(posts);
+  res.json({ success: true, message: "Scheduled post cancelled." });
+});
+
+// POST /api/scheduled-posts/:id/run-now  →  execute all pending platforms immediately
+app.post("/api/scheduled-posts/:id/run-now", async (req, res) => {
+  const posts = loadScheduledPosts();
+  const post = posts.find(p => p.id === req.params.id);
+  if (!post) return res.status(404).json({ success: false, message: "Scheduled post not found." });
+
+  if (post.status === "cancelled") return res.status(400).json({ success: false, message: "This post was cancelled." });
+  if (!post.filePath || !fs.existsSync(post.filePath)) {
+    return res.status(400).json({ success: false, message: "Media file no longer exists." });
+  }
+
+  const results = {};
+  for (const [platform, item] of Object.entries(post.platforms)) {
+    if (item.status !== "pending") {
+      results[platform] = { success: item.status === "success", message: item.resultMessage || `Already ${item.status}` };
+      continue;
+    }
+
+    try {
+      const result = await executePlatformPublish(platform, item.payload, post.filePath);
+      item.status = result.success ? "success" : "failed";
+      item.resultMessage = result.message;
+      item.postId = result.post_id || "";
+      results[platform] = result;
+    } catch (err) {
+      item.status = "failed";
+      item.resultMessage = err.message || "Execution error";
+      results[platform] = { success: false, message: item.resultMessage };
+    }
+  }
+
+  // Update overall status
+  const allDone = Object.values(post.platforms).every(p => p.status !== "pending");
+  const anySuccess = Object.values(post.platforms).some(p => p.status === "success");
+  if (allDone) post.status = anySuccess ? "completed" : "failed";
+
+  saveScheduledPosts(posts);
+  res.json({ success: true, message: "Run-now executed.", results });
+});
+
+// ─── Background Scheduler Worker ──────────────────────────────────────────────
+
+async function checkScheduledPostsWorker() {
+  const posts = loadScheduledPosts();
+  let updated = false;
+  const nowIso = new Date().toISOString();
+
+  for (const post of posts) {
+    if (post.status === "completed" || post.status === "cancelled" || post.status === "failed") continue;
+    if (!post.filePath || !fs.existsSync(post.filePath)) {
+      // File gone — mark all pending as failed
+      for (const [, item] of Object.entries(post.platforms)) {
+        if (item.status === "pending") {
+          item.status = "failed";
+          item.resultMessage = "Media file no longer available.";
+          updated = true;
+        }
+      }
+      post.status = "failed";
+      updated = true;
+      continue;
+    }
+
+    for (const [platform, item] of Object.entries(post.platforms)) {
+      if (item.status === "pending" && item.scheduledAt && item.scheduledAt <= nowIso) {
+        item.status = "processing";
+        updated = true;
+        saveScheduledPosts(posts);
+
+        try {
+          const result = await executePlatformPublish(platform, item.payload, post.filePath);
+          item.status = result.success ? "success" : "failed";
+          item.resultMessage = result.message;
+          item.postId = result.post_id || "";
+        } catch (err) {
+          item.status = "failed";
+          item.resultMessage = err.message || "Execution error";
+        }
+        updated = true;
+      }
+    }
+
+    // Check if all platforms are done
+    const allDone = Object.values(post.platforms).every(p => p.status !== "pending" && p.status !== "processing");
+    const anySuccess = Object.values(post.platforms).some(p => p.status === "success");
+    if (allDone) {
+      post.status = anySuccess ? "completed" : "failed";
+      updated = true;
+    }
+  }
+
+  if (updated) saveScheduledPosts(posts);
+}
+
+// Run scheduler worker every 15 seconds
+setInterval(checkScheduledPostsWorker, 15000);
 
 // ═══════════════════════════════════════════════════════════════════════════════
 //  OPENAI AI ASSISTANT API
@@ -1014,7 +1140,94 @@ JSON Output structure:
   }
 });
 
+// POST /api/generate-single  →  generate or adjust a single field for a platform
+app.post("/api/generate-single", upload.single("file"), async (req, res) => {
+  const filePath = req.file?.path ?? null;
+  const fileName = req.file?.originalname ?? "";
+  const isVideo  = /mp4|mov|avi|mkv/.test(path.extname(fileName).toLowerCase());
+
+  const cfg = loadConfig();
+  const apiKey = cfg.openaiApiKey || process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    if (filePath && fs.existsSync(filePath)) fs.unlink(filePath, () => {});
+    return res.status(400).json({
+      success: false,
+      message: "OpenAI API Key is not configured. Please configure it in AI Settings."
+    });
+  }
+
+  const platform = req.body.platform || "facebook";
+  const field = req.body.field || "caption"; // caption, hashtags, title, description
+  const mode = req.body.mode || "regenerate"; // regenerate, shorten, add_emojis, trending_hashtags
+  const currentText = (req.body.current_text || "").trim();
+  const contextPrompt = (req.body.context_prompt || "").trim();
+
+  try {
+    const targetModel = cfg.openaiModel || "gpt-4o-mini";
+    
+    let instruction = "";
+    if (mode === "shorten") {
+      instruction = `Shorten the following text while keeping it engaging and impact-driven for ${platform}. Text to shorten: "${currentText}"`;
+    } else if (mode === "add_emojis") {
+      instruction = `Add relevant, engaging emojis to the following ${platform} ${field} without changing its main content. Original text: "${currentText}"`;
+    } else if (mode === "trending_hashtags") {
+      instruction = `Generate 8-15 high-reach, viral space-separated hashtags suitable for ${platform} for content related to: "${contextPrompt || currentText || fileName}". Return ONLY hashtags starting with # separated by spaces.`;
+    } else if (field === "hashtags") {
+      instruction = `Generate 8-12 targeted, high-converting space-separated hashtags for ${platform}. Return ONLY space-separated hashtags starting with #. Context: "${contextPrompt || fileName}".`;
+    } else {
+      instruction = `Write a compelling, high-converting social media ${field} specifically tailored for ${platform}. Context/Topic: "${contextPrompt}". File name: "${fileName}".`;
+    }
+
+    const systemPrompt = `You are an expert social media manager. Return ONLY the raw output string for the requested ${field}. Do NOT wrap output in JSON, quotes, or Markdown code blocks.`;
+
+    const messages = [
+      { role: "system", content: systemPrompt }
+    ];
+
+    const contentArray = [{ type: "text", text: instruction }];
+
+    // Image vision support
+    if (!isVideo && filePath && fs.existsSync(filePath)) {
+      try {
+        const imageBuffer = fs.readFileSync(filePath);
+        const base64Image = imageBuffer.toString("base64");
+        const ext = path.extname(fileName).toLowerCase().substring(1);
+        const mimeType = ext === "png" ? "image/png" : "image/jpeg";
+        contentArray.push({
+          type: "image_url",
+          image_url: { url: `data:${mimeType};base64,${base64Image}` }
+        });
+      } catch (err) {}
+    }
+
+    messages.push({ role: "user", content: contentArray });
+
+    const openAiResponse = await axios.post("https://api.openai.com/v1/chat/completions", {
+      model: targetModel,
+      messages: messages,
+      temperature: 0.7,
+      max_tokens: 800
+    }, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`
+      }
+    });
+
+    let resultText = openAiResponse.data?.choices?.[0]?.message?.content || "";
+    resultText = resultText.trim().replace(/^["']|["']$/g, '');
+
+    res.json({ success: true, text: resultText });
+  } catch (err) {
+    const errorDetail = err.response?.data?.error?.message || err.message;
+    res.status(500).json({ success: false, message: "AI adjustment failed: " + errorDetail });
+  } finally {
+    if (filePath && fs.existsSync(filePath)) fs.unlink(filePath, () => {});
+  }
+});
+
 // ─── Start ────────────────────────────────────────────────────────────────────
 
 
 app.listen(PORT, () => console.log(`Server running at http://localhost:${PORT}`));
+

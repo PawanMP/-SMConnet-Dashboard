@@ -290,14 +290,87 @@
     /* ── Platform Details Sections ── */
     .platform-detail-section {
       border: 1px solid #e4e6eb; border-radius: 12px; padding: 20px;
-      margin-top: 14px; animation: fadeSlide .3s ease;
+      margin-top: 14px; animation: fadeSlide .3s ease; transition: opacity .3s, background-color .3s;
+    }
+    .platform-detail-section.disabled-platform {
+      opacity: 0.6; background-color: #fcfcfc; border-style: dashed;
     }
     .platform-detail-header {
       display: flex; align-items: center; gap: 10px; margin-bottom: 16px;
-      padding-bottom: 12px; border-bottom: 1px solid #f0f2f5;
+      padding-bottom: 12px; border-bottom: 1px solid #f0f2f5; flex-wrap: wrap;
     }
     .platform-detail-header .pdh-icon { font-size: 22px; }
     .platform-detail-header .pdh-title { font-size: 15px; font-weight: 700; }
+    
+    /* ── Switch Toggle Switch UI ── */
+    .switch-toggle-wrap {
+      display: flex; align-items: center; gap: 10px; margin-left: auto;
+    }
+    .switch-toggle {
+      position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0;
+    }
+    .switch-toggle input { opacity: 0; width: 0; height: 0; }
+    .slider-toggle {
+      position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #ccc; transition: .3s; border-radius: 24px;
+    }
+    .slider-toggle:before {
+      position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px;
+      background-color: white; transition: .3s; border-radius: 50%; box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+    .switch-toggle input:checked + .slider-toggle { background-color: #1877f2; }
+    .switch-toggle input:checked + .slider-toggle:before { transform: translateX(20px); }
+
+    /* ── AI Field Toolbar & Pill Buttons ── */
+    .field-header-row {
+      display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;
+    }
+    .ai-field-toolbar {
+      display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 6px;
+    }
+    .ai-pill-btn {
+      display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px;
+      border-radius: 14px; font-size: 11.5px; font-weight: 600;
+      background: #f0f5ff; color: #1877f2; border: 1px solid #d0e1fd;
+      cursor: pointer; transition: all 0.2s ease; user-select: none;
+    }
+    .ai-pill-btn:hover:not(:disabled) {
+      background: #1877f2; color: #fff; border-color: #1877f2;
+    }
+    .ai-pill-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .ai-pill-btn.secondary {
+      background: #f0f2f5; color: #444; border-color: #e4e6eb;
+    }
+    .ai-pill-btn.secondary:hover:not(:disabled) {
+      background: #e4e6eb; color: #1c1e21;
+    }
+
+    /* ── Scheduling Controls & Mode Cards ── */
+    .publish-mode-card {
+      flex: 1; display: flex; align-items: center; gap: 12px;
+      padding: 14px; border: 2px solid #e4e6eb; border-radius: 10px;
+      cursor: pointer; background: #fff; transition: all 0.2s ease;
+    }
+    .publish-mode-card:hover { border-color: #1877f2; background: #f7f9fc; }
+    .publish-mode-card.active { border-color: #1877f2; background: #e7f0fd; color: #1877f2; }
+    .schedule-datetime-picker {
+      padding: 7px 10px; border: 1px solid #ced4da; border-radius: 6px;
+      font-size: 13px; outline: none; background: #fff; color: #1c1e21;
+    }
+    .schedule-datetime-picker:focus { border-color: #1877f2; box-shadow: 0 0 0 2px rgba(24,119,242,0.2); }
+    .platform-schedule-wrap {
+      display: flex; align-items: center; gap: 6px; font-size: 12px; color: #4b5563;
+      background: #f8fafc; padding: 4px 10px; border-radius: 6px; border: 1px solid #e2e8f0;
+    }
+    .sched-table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 13.5px; }
+    .sched-table th, .sched-table td { padding: 12px; text-align: left; border-bottom: 1px solid #e4e6eb; vertical-align: middle; }
+    .sched-table th { background: #f7f8fa; color: #4b5563; font-weight: 600; }
+    .badge-status { display: inline-block; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+    .badge-status.pending { background: #fff3cd; color: #856404; }
+    .badge-status.success { background: #d4edda; color: #155724; }
+    .badge-status.failed { background: #f8d7da; color: #721c24; }
+    .badge-status.cancelled { background: #e2e3e5; color: #383d41; }
+
     .hashtag-input {
       width: 100%; border: 1px solid #c8ccd0; border-radius: 8px;
       padding: 10px 12px; font-size: 14px; color: #1c1e21; outline: none;
@@ -594,6 +667,9 @@
     <div class="nav-item active" data-page="dashboard">
       <span class="nav-icon">🏠</span><span>Dashboard</span>
     </div>
+    <div class="nav-item" data-page="scheduled-posts">
+      <span class="nav-icon">📅</span><span>Scheduled Posts</span>
+    </div>
 
     <div style="height:1px;background:#e4e6eb;margin:8px 16px"></div>
 
@@ -737,14 +813,52 @@
         <div class="platform-detail-header">
           <span class="pdh-icon">📘</span>
           <span class="pdh-title" style="color:#1877f2">Facebook</span>
+          <div class="platform-schedule-wrap" style="margin-left:auto">
+            <span>📅 Schedule:</span>
+            <input type="datetime-local" class="schedule-datetime-picker" id="sched-time-facebook" style="font-size:11px;padding:3px 6px">
+          </div>
+          <div class="switch-toggle-wrap">
+            <span style="font-size:12px;font-weight:600;color:#1877f2" id="toggle-lbl-facebook">Publishing Enabled</span>
+            <label class="switch-toggle">
+              <input type="checkbox" id="toggle-publish-facebook" checked onchange="togglePlatformPublish('facebook')">
+              <span class="slider-toggle"></span>
+            </label>
+          </div>
         </div>
         <div class="field">
-          <label for="fb-dash-caption">Caption</label>
+          <div class="field-header-row">
+            <label for="fb-dash-caption" style="margin-bottom:0">Caption</label>
+          </div>
           <textarea id="fb-dash-caption" placeholder="Write a caption for your Facebook post…" style="min-height:70px"></textarea>
+          <div class="ai-field-toolbar">
+            <button type="button" class="ai-pill-btn" onclick="adjustSingleField('facebook', 'caption', 'regenerate', this)">
+              <span class="spinner dark" style="width:12px;height:12px;display:none"></span> 🪄 Regenerate
+            </button>
+            <button type="button" class="ai-pill-btn secondary" onclick="adjustSingleField('facebook', 'caption', 'shorten', this)">
+              <span class="spinner dark" style="width:12px;height:12px;display:none"></span> ⚡ Shorten
+            </button>
+            <button type="button" class="ai-pill-btn secondary" onclick="adjustSingleField('facebook', 'caption', 'add_emojis', this)">
+              <span class="spinner dark" style="width:12px;height:12px;display:none"></span> 😊 Add Emojis
+            </button>
+            <button type="button" class="ai-pill-btn secondary" onclick="copyFieldText('fb-dash-caption')">📋 Copy</button>
+            <button type="button" class="ai-pill-btn secondary" onclick="clearFieldText('fb-dash-caption')">🗑️ Clear</button>
+          </div>
         </div>
         <div class="field" style="margin-bottom:0">
-          <label>Hashtags</label>
+          <div class="field-header-row">
+            <label style="margin-bottom:0">Hashtags</label>
+          </div>
           <input type="text" class="hashtag-input" id="fb-dash-hashtags" placeholder="#facebook #social #post">
+          <div class="ai-field-toolbar">
+            <button type="button" class="ai-pill-btn" onclick="adjustSingleField('facebook', 'hashtags', 'regenerate', this)">
+              <span class="spinner dark" style="width:12px;height:12px;display:none"></span> 🏷️ Regenerate Hashtags
+            </button>
+            <button type="button" class="ai-pill-btn secondary" onclick="adjustSingleField('facebook', 'hashtags', 'trending_hashtags', this)">
+              <span class="spinner dark" style="width:12px;height:12px;display:none"></span> 🔥 Trending Tags
+            </button>
+            <button type="button" class="ai-pill-btn secondary" onclick="copyFieldText('fb-dash-hashtags')">📋 Copy</button>
+            <button type="button" class="ai-pill-btn secondary" onclick="clearFieldText('fb-dash-hashtags')">🗑️ Clear</button>
+          </div>
           <div class="hashtag-hint">Separate hashtags with spaces</div>
         </div>
       </div>
@@ -754,18 +868,56 @@
         <div class="platform-detail-header">
           <span class="pdh-icon">📸</span>
           <span class="pdh-title" style="color:#C13584">Instagram</span>
+          <div class="platform-schedule-wrap" style="margin-left:auto">
+            <span>📅 Schedule:</span>
+            <input type="datetime-local" class="schedule-datetime-picker" id="sched-time-instagram" style="font-size:11px;padding:3px 6px">
+          </div>
+          <div class="switch-toggle-wrap">
+            <span style="font-size:12px;font-weight:600;color:#C13584" id="toggle-lbl-instagram">Publishing Enabled</span>
+            <label class="switch-toggle">
+              <input type="checkbox" id="toggle-publish-instagram" checked onchange="togglePlatformPublish('instagram')">
+              <span class="slider-toggle"></span>
+            </label>
+          </div>
         </div>
         <div class="field">
-          <label for="ig-dash-caption">Caption</label>
+          <div class="field-header-row">
+            <label for="ig-dash-caption" style="margin-bottom:0">Caption</label>
+          </div>
           <textarea id="ig-dash-caption" placeholder="Write a caption for your Instagram post…" style="min-height:70px"></textarea>
+          <div class="ai-field-toolbar">
+            <button type="button" class="ai-pill-btn" onclick="adjustSingleField('instagram', 'caption', 'regenerate', this)">
+              <span class="spinner dark" style="width:12px;height:12px;display:none"></span> 🪄 Regenerate
+            </button>
+            <button type="button" class="ai-pill-btn secondary" onclick="adjustSingleField('instagram', 'caption', 'shorten', this)">
+              <span class="spinner dark" style="width:12px;height:12px;display:none"></span> ⚡ Shorten
+            </button>
+            <button type="button" class="ai-pill-btn secondary" onclick="adjustSingleField('instagram', 'caption', 'add_emojis', this)">
+              <span class="spinner dark" style="width:12px;height:12px;display:none"></span> 😊 Add Emojis
+            </button>
+            <button type="button" class="ai-pill-btn secondary" onclick="copyFieldText('ig-dash-caption')">📋 Copy</button>
+            <button type="button" class="ai-pill-btn secondary" onclick="clearFieldText('ig-dash-caption')">🗑️ Clear</button>
+          </div>
         </div>
         <div class="field">
           <label for="ig-dash-url">Public Media URL <span style="color:#b0b3b8;font-weight:normal">(Required for Instagram)</span></label>
           <input type="text" class="hashtag-input" id="ig-dash-url" placeholder="https://example.com/image.jpg">
         </div>
         <div class="field" style="margin-bottom:0">
-          <label>Hashtags</label>
+          <div class="field-header-row">
+            <label style="margin-bottom:0">Hashtags</label>
+          </div>
           <input type="text" class="hashtag-input" id="ig-dash-hashtags" placeholder="#instagram #instagood #photooftheday">
+          <div class="ai-field-toolbar">
+            <button type="button" class="ai-pill-btn" onclick="adjustSingleField('instagram', 'hashtags', 'regenerate', this)">
+              <span class="spinner dark" style="width:12px;height:12px;display:none"></span> 🏷️ Regenerate Hashtags
+            </button>
+            <button type="button" class="ai-pill-btn secondary" onclick="adjustSingleField('instagram', 'hashtags', 'trending_hashtags', this)">
+              <span class="spinner dark" style="width:12px;height:12px;display:none"></span> 🔥 Trending Tags
+            </button>
+            <button type="button" class="ai-pill-btn secondary" onclick="copyFieldText('ig-dash-hashtags')">📋 Copy</button>
+            <button type="button" class="ai-pill-btn secondary" onclick="clearFieldText('ig-dash-hashtags')">🗑️ Clear</button>
+          </div>
           <div class="hashtag-hint">Separate hashtags with spaces</div>
         </div>
       </div>
@@ -775,18 +927,68 @@
         <div class="platform-detail-header">
           <span class="pdh-icon">📽️</span>
           <span class="pdh-title" style="color:#FF0000">YouTube</span>
+          <div class="platform-schedule-wrap" style="margin-left:auto">
+            <span>📅 Schedule:</span>
+            <input type="datetime-local" class="schedule-datetime-picker" id="sched-time-youtube" style="font-size:11px;padding:3px 6px">
+          </div>
+          <div class="switch-toggle-wrap">
+            <span style="font-size:12px;font-weight:600;color:#FF0000" id="toggle-lbl-youtube">Publishing Enabled</span>
+            <label class="switch-toggle">
+              <input type="checkbox" id="toggle-publish-youtube" checked onchange="togglePlatformPublish('youtube')">
+              <span class="slider-toggle"></span>
+            </label>
+          </div>
         </div>
         <div class="field">
-          <label for="yt-dash-title">Video Title</label>
+          <div class="field-header-row">
+            <label for="yt-dash-title" style="margin-bottom:0">Video Title</label>
+          </div>
           <input type="text" class="hashtag-input" id="yt-dash-title" placeholder="Enter video title…">
+          <div class="ai-field-toolbar">
+            <button type="button" class="ai-pill-btn" onclick="adjustSingleField('youtube', 'title', 'regenerate', this)">
+              <span class="spinner dark" style="width:12px;height:12px;display:none"></span> 🪄 Regenerate Title
+            </button>
+            <button type="button" class="ai-pill-btn secondary" onclick="adjustSingleField('youtube', 'title', 'shorten', this)">
+              <span class="spinner dark" style="width:12px;height:12px;display:none"></span> ⚡ Shorten
+            </button>
+            <button type="button" class="ai-pill-btn secondary" onclick="copyFieldText('yt-dash-title')">📋 Copy</button>
+            <button type="button" class="ai-pill-btn secondary" onclick="clearFieldText('yt-dash-title')">🗑️ Clear</button>
+          </div>
         </div>
         <div class="field">
-          <label for="yt-dash-description">Description</label>
+          <div class="field-header-row">
+            <label for="yt-dash-description" style="margin-bottom:0">Description</label>
+          </div>
           <textarea id="yt-dash-description" placeholder="Write a description for your YouTube video…" style="min-height:70px"></textarea>
+          <div class="ai-field-toolbar">
+            <button type="button" class="ai-pill-btn" onclick="adjustSingleField('youtube', 'description', 'regenerate', this)">
+              <span class="spinner dark" style="width:12px;height:12px;display:none"></span> 🪄 Regenerate
+            </button>
+            <button type="button" class="ai-pill-btn secondary" onclick="adjustSingleField('youtube', 'description', 'shorten', this)">
+              <span class="spinner dark" style="width:12px;height:12px;display:none"></span> ⚡ Shorten
+            </button>
+            <button type="button" class="ai-pill-btn secondary" onclick="adjustSingleField('youtube', 'description', 'add_emojis', this)">
+              <span class="spinner dark" style="width:12px;height:12px;display:none"></span> 😊 Add Emojis
+            </button>
+            <button type="button" class="ai-pill-btn secondary" onclick="copyFieldText('yt-dash-description')">📋 Copy</button>
+            <button type="button" class="ai-pill-btn secondary" onclick="clearFieldText('yt-dash-description')">🗑️ Clear</button>
+          </div>
         </div>
         <div class="field" style="margin-bottom:0">
-          <label>Tags</label>
+          <div class="field-header-row">
+            <label style="margin-bottom:0">Tags</label>
+          </div>
           <input type="text" class="hashtag-input" id="yt-dash-hashtags" placeholder="#youtube #video #vlog">
+          <div class="ai-field-toolbar">
+            <button type="button" class="ai-pill-btn" onclick="adjustSingleField('youtube', 'hashtags', 'regenerate', this)">
+              <span class="spinner dark" style="width:12px;height:12px;display:none"></span> 🏷️ Regenerate Tags
+            </button>
+            <button type="button" class="ai-pill-btn secondary" onclick="adjustSingleField('youtube', 'hashtags', 'trending_hashtags', this)">
+              <span class="spinner dark" style="width:12px;height:12px;display:none"></span> 🔥 Trending Tags
+            </button>
+            <button type="button" class="ai-pill-btn secondary" onclick="copyFieldText('yt-dash-hashtags')">📋 Copy</button>
+            <button type="button" class="ai-pill-btn secondary" onclick="clearFieldText('yt-dash-hashtags')">🗑️ Clear</button>
+          </div>
           <div class="hashtag-hint">Separate tags with spaces</div>
         </div>
       </div>
@@ -796,14 +998,52 @@
         <div class="platform-detail-header">
           <span class="pdh-icon">🎵</span>
           <span class="pdh-title" style="color:#000">TikTok</span>
+          <div class="platform-schedule-wrap" style="margin-left:auto">
+            <span>📅 Schedule:</span>
+            <input type="datetime-local" class="schedule-datetime-picker" id="sched-time-tiktok" style="font-size:11px;padding:3px 6px">
+          </div>
+          <div class="switch-toggle-wrap">
+            <span style="font-size:12px;font-weight:600;color:#000" id="toggle-lbl-tiktok">Publishing Enabled</span>
+            <label class="switch-toggle">
+              <input type="checkbox" id="toggle-publish-tiktok" checked onchange="togglePlatformPublish('tiktok')">
+              <span class="slider-toggle"></span>
+            </label>
+          </div>
         </div>
         <div class="field">
-          <label for="tk-dash-caption">Caption</label>
+          <div class="field-header-row">
+            <label for="tk-dash-caption" style="margin-bottom:0">Caption</label>
+          </div>
           <textarea id="tk-dash-caption" placeholder="Write a caption for your TikTok video…" style="min-height:70px"></textarea>
+          <div class="ai-field-toolbar">
+            <button type="button" class="ai-pill-btn" onclick="adjustSingleField('tiktok', 'caption', 'regenerate', this)">
+              <span class="spinner dark" style="width:12px;height:12px;display:none"></span> 🪄 Regenerate
+            </button>
+            <button type="button" class="ai-pill-btn secondary" onclick="adjustSingleField('tiktok', 'caption', 'shorten', this)">
+              <span class="spinner dark" style="width:12px;height:12px;display:none"></span> ⚡ Shorten
+            </button>
+            <button type="button" class="ai-pill-btn secondary" onclick="adjustSingleField('tiktok', 'caption', 'add_emojis', this)">
+              <span class="spinner dark" style="width:12px;height:12px;display:none"></span> 😊 Add Emojis
+            </button>
+            <button type="button" class="ai-pill-btn secondary" onclick="copyFieldText('tk-dash-caption')">📋 Copy</button>
+            <button type="button" class="ai-pill-btn secondary" onclick="clearFieldText('tk-dash-caption')">🗑️ Clear</button>
+          </div>
         </div>
         <div class="field" style="margin-bottom:0">
-          <label>Hashtags</label>
+          <div class="field-header-row">
+            <label style="margin-bottom:0">Hashtags</label>
+          </div>
           <input type="text" class="hashtag-input" id="tk-dash-hashtags" placeholder="#tiktok #fyp #viral">
+          <div class="ai-field-toolbar">
+            <button type="button" class="ai-pill-btn" onclick="adjustSingleField('tiktok', 'hashtags', 'regenerate', this)">
+              <span class="spinner dark" style="width:12px;height:12px;display:none"></span> 🏷️ Regenerate Hashtags
+            </button>
+            <button type="button" class="ai-pill-btn secondary" onclick="adjustSingleField('tiktok', 'hashtags', 'trending_hashtags', this)">
+              <span class="spinner dark" style="width:12px;height:12px;display:none"></span> 🔥 Trending Tags
+            </button>
+            <button type="button" class="ai-pill-btn secondary" onclick="copyFieldText('tk-dash-hashtags')">📋 Copy</button>
+            <button type="button" class="ai-pill-btn secondary" onclick="clearFieldText('tk-dash-hashtags')">🗑️ Clear</button>
+          </div>
           <div class="hashtag-hint">Separate hashtags with spaces</div>
         </div>
       </div>
@@ -813,31 +1053,144 @@
         <div class="platform-detail-header">
           <span class="pdh-icon">📌</span>
           <span class="pdh-title" style="color:#E60023">Pinterest</span>
+          <div class="platform-schedule-wrap" style="margin-left:auto">
+            <span>📅 Schedule:</span>
+            <input type="datetime-local" class="schedule-datetime-picker" id="sched-time-pinterest" style="font-size:11px;padding:3px 6px">
+          </div>
+          <div class="switch-toggle-wrap">
+            <span style="font-size:12px;font-weight:600;color:#E60023" id="toggle-lbl-pinterest">Publishing Enabled</span>
+            <label class="switch-toggle">
+              <input type="checkbox" id="toggle-publish-pinterest" checked onchange="togglePlatformPublish('pinterest')">
+              <span class="slider-toggle"></span>
+            </label>
+          </div>
         </div>
         <div class="field">
-          <label for="pin-dash-title">Pin Title</label>
+          <div class="field-header-row">
+            <label for="pin-dash-title" style="margin-bottom:0">Pin Title</label>
+          </div>
           <input type="text" class="hashtag-input" id="pin-dash-title" placeholder="Enter pin title…">
+          <div class="ai-field-toolbar">
+            <button type="button" class="ai-pill-btn" onclick="adjustSingleField('pinterest', 'title', 'regenerate', this)">
+              <span class="spinner dark" style="width:12px;height:12px;display:none"></span> 🪄 Regenerate Title
+            </button>
+            <button type="button" class="ai-pill-btn secondary" onclick="copyFieldText('pin-dash-title')">📋 Copy</button>
+            <button type="button" class="ai-pill-btn secondary" onclick="clearFieldText('pin-dash-title')">🗑️ Clear</button>
+          </div>
         </div>
         <div class="field">
-          <label for="pin-dash-description">Description</label>
+          <div class="field-header-row">
+            <label for="pin-dash-description" style="margin-bottom:0">Description</label>
+          </div>
           <textarea id="pin-dash-description" placeholder="Write a description for your Pinterest pin…" style="min-height:70px"></textarea>
+          <div class="ai-field-toolbar">
+            <button type="button" class="ai-pill-btn" onclick="adjustSingleField('pinterest', 'description', 'regenerate', this)">
+              <span class="spinner dark" style="width:12px;height:12px;display:none"></span> 🪄 Regenerate
+            </button>
+            <button type="button" class="ai-pill-btn secondary" onclick="adjustSingleField('pinterest', 'description', 'shorten', this)">
+              <span class="spinner dark" style="width:12px;height:12px;display:none"></span> ⚡ Shorten
+            </button>
+            <button type="button" class="ai-pill-btn secondary" onclick="adjustSingleField('pinterest', 'description', 'add_emojis', this)">
+              <span class="spinner dark" style="width:12px;height:12px;display:none"></span> 😊 Add Emojis
+            </button>
+            <button type="button" class="ai-pill-btn secondary" onclick="copyFieldText('pin-dash-description')">📋 Copy</button>
+            <button type="button" class="ai-pill-btn secondary" onclick="clearFieldText('pin-dash-description')">🗑️ Clear</button>
+          </div>
         </div>
         <div class="field" style="margin-bottom:0">
-          <label>Hashtags</label>
+          <div class="field-header-row">
+            <label style="margin-bottom:0">Hashtags</label>
+          </div>
           <input type="text" class="hashtag-input" id="pin-dash-hashtags" placeholder="#pinterest #pinit #inspiration">
+          <div class="ai-field-toolbar">
+            <button type="button" class="ai-pill-btn" onclick="adjustSingleField('pinterest', 'hashtags', 'regenerate', this)">
+              <span class="spinner dark" style="width:12px;height:12px;display:none"></span> 🏷️ Regenerate Hashtags
+            </button>
+            <button type="button" class="ai-pill-btn secondary" onclick="adjustSingleField('pinterest', 'hashtags', 'trending_hashtags', this)">
+              <span class="spinner dark" style="width:12px;height:12px;display:none"></span> 🔥 Trending Tags
+            </button>
+            <button type="button" class="ai-pill-btn secondary" onclick="copyFieldText('pin-dash-hashtags')">📋 Copy</button>
+            <button type="button" class="ai-pill-btn secondary" onclick="clearFieldText('pin-dash-hashtags')">🗑️ Clear</button>
+          </div>
           <div class="hashtag-hint">Separate hashtags with spaces</div>
         </div>
       </div>
     </div>
 
-    <!-- ═══ STEP 4: Publish ═══ -->
+    <!-- ═══ STEP 4: Publish & Schedule ═══ -->
     <div class="card" style="margin-bottom:20px">
-      <button class="btn-primary full" id="dash-publish-btn" onclick="dashPublish()" disabled>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+        <span style="background:#1877f2;color:#fff;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0">4</span>
+        <h2 style="font-size:17px;font-weight:700;color:#1c1e21;margin:0">Publishing Mode</h2>
+      </div>
+
+      <!-- Mode Selector Cards -->
+      <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap">
+        <div class="publish-mode-card active" id="mode-card-now" onclick="setPublishMode('now')">
+          <span style="font-size:22px">🚀</span>
+          <div>
+            <div style="font-weight:700;font-size:14px">Publish Now</div>
+            <div style="font-size:11px;color:#65676b">Post immediately to selected channels</div>
+          </div>
+        </div>
+
+        <div class="publish-mode-card" id="mode-card-schedule" onclick="setPublishMode('schedule')">
+          <span style="font-size:22px">📅</span>
+          <div>
+            <div style="font-weight:700;font-size:14px">Schedule for Later</div>
+            <div style="font-size:11px;color:#65676b">Set distinct times or bulk schedule all</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bulk / Global Scheduler Bar -->
+      <div id="global-schedule-box" style="display:none;background:#f0f7ff;border:1px solid #cce5ff;border-radius:8px;padding:14px;margin-bottom:16px">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+          <div>
+            <label style="font-weight:700;font-size:13px;color:#004085;display:block;margin-bottom:4px">📅 Bulk Schedule (All Connected Accounts)</label>
+            <span style="font-size:11px;color:#0056b3">Set a unified schedule time for all accounts, or customize distinct times per platform in Step 3.</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <input type="datetime-local" id="global-schedule-datetime" class="schedule-datetime-picker">
+            <button type="button" class="btn-secondary" onclick="applyGlobalSchedule()" style="padding:7px 12px;font-size:12px;font-weight:600">⚡ Apply to All</button>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-primary full" id="dash-publish-btn" onclick="handlePublishOrScheduleAction()" disabled>
         <span class="spinner" id="dash-publish-spinner"></span>
         <span id="dash-publish-text">🚀 Publish to Selected Platforms</span>
       </button>
+
       <div class="alert success" id="dash-publish-success"></div>
       <div class="alert error" id="dash-publish-error"></div>
+    </div>
+  </section>
+
+  <!-- ── SCHEDULED POSTS ── -->
+  <section class="page" id="page-scheduled-posts">
+    <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+      <div>
+        <h1>📅 Scheduled Posts</h1>
+        <p>View, manage, or execute your queued social media posts</p>
+      </div>
+      <button class="btn-secondary" onclick="loadScheduledPostsList()" style="font-size:13px;padding:8px 14px">
+        🔄 Refresh List
+      </button>
+    </div>
+
+    <div class="card">
+      <div id="scheduled-posts-loading" style="display:none;padding:20px;text-align:center;color:#65676b">
+        <span class="spinner dark" style="display:inline-block"></span> Loading scheduled posts...
+      </div>
+
+      <div id="scheduled-posts-empty" style="display:none;padding:40px 20px;text-align:center;color:#65676b">
+        <div style="font-size:36px;margin-bottom:8px">📭</div>
+        <div style="font-size:16px;font-weight:600">No scheduled posts found</div>
+        <div style="font-size:13px;color:#8a8d91;margin-top:4px">Use the Dashboard scheduler to queue up upcoming content.</div>
+      </div>
+
+      <div id="scheduled-posts-container" style="overflow-x:auto"></div>
     </div>
   </section>
 
@@ -1340,12 +1693,13 @@ function goTo(pageId) {
     }
   }
   
-  if (pageId === "facebook")    loadSettingsStatus();
-  if (pageId === "instagram")   igLoadSettingsStatus();
-  if (pageId === "youtube")     ytLoadSettingsStatus();
-  if (pageId === "tiktok")      tkLoadSettingsStatus();
-  if (pageId === "pinterest")   pinLoadSettingsStatus();
-  if (pageId === "ai-settings") aiLoadSettingsStatus();
+  if (pageId === "facebook")        loadSettingsStatus();
+  if (pageId === "instagram")       igLoadSettingsStatus();
+  if (pageId === "youtube")         ytLoadSettingsStatus();
+  if (pageId === "tiktok")          tkLoadSettingsStatus();
+  if (pageId === "pinterest")       pinLoadSettingsStatus();
+  if (pageId === "ai-settings")     aiLoadSettingsStatus();
+  if (pageId === "scheduled-posts") loadScheduledPostsList();
 }
 
 document.querySelectorAll(".nav-item").forEach(item => {
@@ -1373,15 +1727,126 @@ function togglePlatformFields() {
   updatePublishButtonState();
 }
 
+function togglePlatformPublish(platform) {
+  const toggleInput = document.getElementById("toggle-publish-" + platform);
+  const detailSection = document.getElementById("detail-" + platform);
+  const lbl = document.getElementById("toggle-lbl-" + platform);
+  
+  if (!toggleInput || !detailSection) return;
+
+  if (toggleInput.checked) {
+    detailSection.classList.remove("disabled-platform");
+    if (lbl) lbl.textContent = "Publishing Enabled";
+  } else {
+    detailSection.classList.add("disabled-platform");
+    if (lbl) lbl.textContent = "Publishing Excluded";
+  }
+  updatePublishButtonState();
+}
+
+function getEnabledPlatforms() {
+  const checkboxes = Array.from(document.querySelectorAll('.platform-checkbox:checked'));
+  return checkboxes
+    .map(cb => cb.value)
+    .filter(plat => {
+      const toggle = document.getElementById('toggle-publish-' + plat);
+      return !toggle || toggle.checked;
+    });
+}
+
 function updatePublishButtonState() {
-  const selectedPlats = document.querySelectorAll('.platform-checkbox:checked');
+  const enabledPlats = getEnabledPlatforms();
   const fileInput = document.getElementById('dash-file-input');
   const publishBtn = document.getElementById('dash-publish-btn');
   const hasFile = fileInput && fileInput.files && fileInput.files[0];
   
   if (publishBtn) {
-    publishBtn.disabled = !(selectedPlats.length > 0 && hasFile);
+    publishBtn.disabled = !(enabledPlats.length > 0 && hasFile);
   }
+}
+
+async function adjustSingleField(platform, field, mode, btnEl) {
+  const fileInput = document.getElementById("dash-file-input");
+  const file = fileInput?.files?.[0];
+  const contextPrompt = document.getElementById("ai-dash-prompt")?.value || "";
+  
+  let targetId = "";
+  if (platform === "facebook") {
+    targetId = field === "caption" ? "fb-dash-caption" : "fb-dash-hashtags";
+  } else if (platform === "instagram") {
+    targetId = field === "caption" ? "ig-dash-caption" : "ig-dash-hashtags";
+  } else if (platform === "youtube") {
+    if (field === "title") targetId = "yt-dash-title";
+    else if (field === "description") targetId = "yt-dash-description";
+    else targetId = "yt-dash-hashtags";
+  } else if (platform === "tiktok") {
+    targetId = field === "caption" ? "tk-dash-caption" : "tk-dash-hashtags";
+  } else if (platform === "pinterest") {
+    if (field === "title") targetId = "pin-dash-title";
+    else if (field === "description") targetId = "pin-dash-description";
+    else targetId = "pin-dash-hashtags";
+  }
+
+  const targetEl = document.getElementById(targetId);
+  if (!targetEl) return;
+
+  const currentText = targetEl.value || "";
+  const spinner = btnEl.querySelector(".spinner");
+
+  btnEl.disabled = true;
+  if (spinner) spinner.style.display = "inline-block";
+
+  try {
+    const fd = new FormData();
+    if (file) fd.append("file", file);
+    fd.append("platform", platform);
+    fd.append("field", field);
+    fd.append("mode", mode);
+    fd.append("current_text", currentText);
+    fd.append("context_prompt", contextPrompt);
+
+    const res = await fetch("/api/generate-single", { method: "POST", body: fd });
+    const data = await res.json();
+
+    if (data.success && data.text) {
+      targetEl.value = data.text;
+      targetEl.style.borderColor = "#1877f2";
+      setTimeout(() => { targetEl.style.borderColor = ""; }, 1000);
+    } else {
+      alert("❌ " + (data.message || "Could not generate content. Check your OpenAI API Key in AI Settings."));
+    }
+  } catch (err) {
+    alert("❌ Network error while communicating with AI service.");
+  } finally {
+    btnEl.disabled = false;
+    if (spinner) spinner.style.display = "none";
+  }
+}
+
+function copyFieldText(elementId) {
+  const el = document.getElementById(elementId);
+  if (!el) return;
+  const text = el.value || "";
+  if (!text) {
+    alert("Nothing to copy.");
+    return;
+  }
+
+  navigator.clipboard.writeText(text).then(() => {
+    if (window.event && window.event.currentTarget) {
+      const btn = window.event.currentTarget;
+      const origText = btn.innerHTML;
+      btn.innerHTML = "✅ Copied!";
+      setTimeout(() => { btn.innerHTML = origText; }, 1500);
+    }
+  }).catch(() => {
+    alert("Failed to copy text.");
+  });
+}
+
+function clearFieldText(elementId) {
+  const el = document.getElementById(elementId);
+  if (el) el.value = "";
 }
 
 const dashFileInput = document.getElementById("dash-file-input");
@@ -1443,9 +1908,9 @@ async function dashPublish() {
     return;
   }
 
-  const selectedPlats = Array.from(document.querySelectorAll('.platform-checkbox:checked')).map(cb => cb.value);
+  const selectedPlats = getEnabledPlatforms();
   if (selectedPlats.length === 0) {
-    errorEl.textContent = "Please select at least one platform to publish to.";
+    errorEl.textContent = "Please select and enable at least one platform to publish to.";
     errorEl.style.display = "block";
     return;
   }
@@ -1548,7 +2013,299 @@ async function dashPublish() {
   } finally {
     submitBtn.disabled = false;
     spinner.style.display = "none";
+    btnTxt.textContent = currentPublishMode === "schedule" ? "📅 Schedule Post for Later" : "🚀 Publish to Selected Platforms";
+  }
+}
+
+// ── Scheduling State & Helper Functions ───────────────────────────────────────
+
+let currentPublishMode = "now"; // "now" | "schedule"
+
+function setPublishMode(mode) {
+  currentPublishMode = mode;
+  const cardNow = document.getElementById("mode-card-now");
+  const cardSchedule = document.getElementById("mode-card-schedule");
+  const globalBox = document.getElementById("global-schedule-box");
+  const btnTxt = document.getElementById("dash-publish-text");
+
+  if (mode === "schedule") {
+    cardSchedule.classList.add("active");
+    cardNow.classList.remove("active");
+    globalBox.style.display = "block";
+    btnTxt.textContent = "📅 Schedule Post for Later";
+
+    // Pre-fill default datetime picker with 1 hour from now if empty
+    const dtPicker = document.getElementById("global-schedule-datetime");
+    if (!dtPicker.value) {
+      const defaultTime = new Date(Date.now() + 3600000);
+      const isoLocal = new Date(defaultTime.getTime() - (defaultTime.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
+      dtPicker.value = isoLocal;
+    }
+  } else {
+    cardNow.classList.add("active");
+    cardSchedule.classList.remove("active");
+    globalBox.style.display = "none";
     btnTxt.textContent = "🚀 Publish to Selected Platforms";
+  }
+}
+
+function applyGlobalSchedule() {
+  const globalVal = document.getElementById("global-schedule-datetime").value;
+  if (!globalVal) {
+    alert("Please select a date and time first.");
+    return;
+  }
+  ['facebook', 'instagram', 'youtube', 'tiktok', 'pinterest'].forEach(plat => {
+    const input = document.getElementById("sched-time-" + plat);
+    if (input) input.value = globalVal;
+  });
+}
+
+function handlePublishOrScheduleAction() {
+  if (currentPublishMode === "schedule") {
+    schedulePost();
+  } else {
+    dashPublish();
+  }
+}
+
+async function schedulePost() {
+  const successEl = document.getElementById("dash-publish-success");
+  const errorEl   = document.getElementById("dash-publish-error");
+  const submitBtn = document.getElementById("dash-publish-btn");
+  const spinner   = document.getElementById("dash-publish-spinner");
+  const btnTxt    = document.getElementById("dash-publish-text");
+  const fileInput = document.getElementById("dash-file-input");
+
+  successEl.style.display = "none";
+  errorEl.style.display   = "none";
+  successEl.innerHTML = "";
+  errorEl.innerHTML = "";
+
+  const file = fileInput.files[0];
+  if (!file) {
+    errorEl.textContent = "Please select a file first.";
+    errorEl.style.display = "block";
+    return;
+  }
+
+  const selectedPlats = getEnabledPlatforms();
+  if (selectedPlats.length === 0) {
+    errorEl.textContent = "Please select and enable at least one platform to schedule for.";
+    errorEl.style.display = "block";
+    return;
+  }
+
+  // Collect schedule times per platform
+  const schedules = {};
+  const globalTime = document.getElementById("global-schedule-datetime").value;
+
+  for (const plat of selectedPlats) {
+    const platTime = document.getElementById("sched-time-" + plat)?.value;
+    if (platTime) {
+      schedules[plat] = platTime;
+    } else if (globalTime) {
+      schedules[plat] = globalTime;
+    } else {
+      errorEl.textContent = `Please set a schedule time for ${plat.toUpperCase()} or use the Bulk Schedule picker.`;
+      errorEl.style.display = "block";
+      return;
+    }
+  }
+
+  submitBtn.disabled = true;
+  spinner.style.display = "inline-block";
+  btnTxt.textContent = "Scheduling…";
+
+  try {
+    const fd = new FormData();
+    fd.append("file", file);
+    fd.append("platforms", JSON.stringify(selectedPlats));
+    fd.append("schedules", JSON.stringify(schedules));
+    if (globalTime) fd.append("global_schedule_time", globalTime);
+
+    if (selectedPlats.includes("facebook")) {
+      fd.append("fb_caption", document.getElementById("fb-dash-caption").value);
+      fd.append("fb_hashtags", document.getElementById("fb-dash-hashtags").value);
+    }
+    if (selectedPlats.includes("instagram")) {
+      fd.append("ig_caption", document.getElementById("ig-dash-caption").value);
+      fd.append("ig_hashtags", document.getElementById("ig-dash-hashtags").value);
+      fd.append("image_url", document.getElementById("ig-dash-url").value);
+    }
+    if (selectedPlats.includes("youtube")) {
+      fd.append("yt_title", document.getElementById("yt-dash-title").value);
+      fd.append("yt_description", document.getElementById("yt-dash-description").value);
+      fd.append("yt_tags", document.getElementById("yt-dash-hashtags").value);
+    }
+    if (selectedPlats.includes("tiktok")) {
+      fd.append("tk_caption", document.getElementById("tk-dash-caption").value);
+      fd.append("tk_hashtags", document.getElementById("tk-dash-hashtags").value);
+    }
+    if (selectedPlats.includes("pinterest")) {
+      fd.append("pin_title", document.getElementById("pin-dash-title").value);
+      fd.append("pin_description", document.getElementById("pin-dash-description").value);
+      fd.append("pin_hashtags", document.getElementById("pin-dash-hashtags").value);
+    }
+
+    const res = await fetch("/api/schedule-post", { method: "POST", body: fd });
+    const data = await res.json();
+
+    if (data.success) {
+      let schedDetails = `<div style="font-weight:700;margin-bottom:6px">🎉 ${data.message}</div><ul style="padding-left:16px;line-height:1.6">`;
+      for (const [plat, info] of Object.entries(data.post.platforms)) {
+        const title = plat.charAt(0).toUpperCase() + plat.slice(1);
+        const formattedTime = new Date(info.scheduledAt).toLocaleString();
+        schedDetails += `<li>📅 <strong>${title}</strong>: Scheduled for ${formattedTime}</li>`;
+      }
+      schedDetails += `</ul><div style="margin-top:8px"><button class="btn-secondary" onclick="goTo('scheduled-posts')" style="font-size:12px;padding:4px 10px">View Scheduled Posts</button></div>`;
+
+      successEl.innerHTML = schedDetails;
+      successEl.style.display = "block";
+
+      // Reset form
+      document.getElementById("dash-file-input").value = "";
+      document.getElementById("dash-media-preview").innerHTML = "";
+      document.getElementById("dash-preview-wrap").style.display = "none";
+      document.getElementById("dash-drop-zone").style.display = "block";
+
+      document.getElementById("fb-dash-caption").value = "";
+      document.getElementById("fb-dash-hashtags").value = "";
+      document.getElementById("ig-dash-caption").value = "";
+      document.getElementById("ig-dash-hashtags").value = "";
+      document.getElementById("ig-dash-url").value = "";
+      document.getElementById("yt-dash-title").value = "";
+      document.getElementById("yt-dash-description").value = "";
+      document.getElementById("yt-dash-hashtags").value = "";
+      document.getElementById("tk-dash-caption").value = "";
+      document.getElementById("tk-dash-hashtags").value = "";
+      document.getElementById("pin-dash-title").value = "";
+      document.getElementById("pin-dash-description").value = "";
+      document.getElementById("pin-dash-hashtags").value = "";
+
+      ['facebook', 'instagram', 'youtube', 'tiktok', 'pinterest'].forEach(p => {
+        const inp = document.getElementById("sched-time-" + p);
+        if (inp) inp.value = "";
+      });
+
+      document.querySelectorAll(".platform-checkbox").forEach(cb => cb.checked = false);
+      togglePlatformFields();
+    } else {
+      errorEl.textContent = "❌ " + (data.message || "Failed to schedule post.");
+      errorEl.style.display = "block";
+    }
+  } catch (err) {
+    errorEl.textContent = "❌ Network error scheduling post.";
+    errorEl.style.display = "block";
+  } finally {
+    submitBtn.disabled = false;
+    spinner.style.display = "none";
+    btnTxt.textContent = "📅 Schedule Post for Later";
+  }
+}
+
+// ── Scheduled Posts Management Functions ─────────────────────────────────────
+
+async function loadScheduledPostsList() {
+  const loading = document.getElementById("scheduled-posts-loading");
+  const empty = document.getElementById("scheduled-posts-empty");
+  const container = document.getElementById("scheduled-posts-container");
+
+  if (!loading || !empty || !container) return;
+
+  loading.style.display = "block";
+  empty.style.display = "none";
+  container.innerHTML = "";
+
+  try {
+    const res = await fetch("/api/scheduled-posts");
+    const data = await res.json();
+    loading.style.display = "none";
+
+    if (!data.success || !data.posts || data.posts.length === 0) {
+      empty.style.display = "block";
+      return;
+    }
+
+    let html = `
+      <table class="sched-table">
+        <thead>
+          <tr>
+            <th>File / Content</th>
+            <th>Created</th>
+            <th>Platforms &amp; Schedule Times</th>
+            <th>Overall Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    data.posts.forEach(post => {
+      let platDetails = `<ul style="list-style:none;padding:0;margin:0;line-height:1.6">`;
+      for (const [plat, item] of Object.entries(post.platforms)) {
+        const icon = plat === "facebook" ? "📘" : plat === "instagram" ? "📸" : plat === "youtube" ? "📽️" : plat === "tiktok" ? "🎵" : "📌";
+        const dateStr = item.scheduledAt ? new Date(item.scheduledAt).toLocaleString() : "N/A";
+        const statusBadge = `<span class="badge-status ${item.status}">${item.status.toUpperCase()}</span>`;
+        platDetails += `<li style="margin-bottom:4px">${icon} <strong>${plat.toUpperCase()}</strong>: ${statusBadge} <br><span style="font-size:11px;color:#65676b">🕒 ${dateStr}</span>${item.resultMessage ? `<br><span style="font-size:11px;color:#c62828">${item.resultMessage}</span>` : ''}</li>`;
+      }
+      platDetails += `</ul>`;
+
+      const overallBadge = `<span class="badge-status ${post.status}">${post.status.toUpperCase()}</span>`;
+      const createdStr = new Date(post.createdAt).toLocaleString();
+
+      html += `
+        <tr>
+          <td>
+            <strong>📁 ${post.fileName || 'Media Post'}</strong>
+            <div style="font-size:11px;color:#65676b;margin-top:4px">ID: ${post.id}</div>
+          </td>
+          <td style="font-size:12px;color:#4b5563">${createdStr}</td>
+          <td>${platDetails}</td>
+          <td>${overallBadge}</td>
+          <td>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              ${post.status === 'scheduled' ? `
+                <button class="btn-primary" onclick="runScheduledPostNow('${post.id}')" style="font-size:11.5px;padding:4px 10px">▶️ Run Now</button>
+                <button class="btn-secondary" onclick="cancelScheduledPost('${post.id}')" style="font-size:11.5px;padding:4px 10px;color:#c62828;border-color:#ffcdd2">❌ Cancel</button>
+              ` : `
+                <span style="font-size:12px;color:#8a8d91">No actions</span>
+              `}
+            </div>
+          </td>
+        </tr>
+      `;
+    });
+
+    html += `</tbody></table>`;
+    container.innerHTML = html;
+  } catch (e) {
+    loading.style.display = "none";
+    container.innerHTML = `<div class="alert error" style="display:block">Failed to load scheduled posts.</div>`;
+  }
+}
+
+async function cancelScheduledPost(id) {
+  if (!confirm("Are you sure you want to cancel this scheduled post?")) return;
+  try {
+    const res = await fetch(`/api/scheduled-posts/${id}`, { method: "DELETE" });
+    const data = await res.json();
+    alert(data.message || "Cancelled.");
+    loadScheduledPostsList();
+  } catch (e) {
+    alert("Failed to cancel post.");
+  }
+}
+
+async function runScheduledPostNow(id) {
+  if (!confirm("Execute this scheduled post immediately?")) return;
+  try {
+    const res = await fetch(`/api/scheduled-posts/${id}/run-now`, { method: "POST" });
+    const data = await res.json();
+    alert(data.message || "Executed.");
+    loadScheduledPostsList();
+  } catch (e) {
+    alert("Failed to execute post.");
   }
 }
 
@@ -2096,9 +2853,9 @@ async function generateAiContent() {
   successEl.textContent = "";
   errorEl.textContent = "";
 
-  const selectedPlats = Array.from(document.querySelectorAll('.platform-checkbox:checked')).map(cb => cb.value);
+  const selectedPlats = getEnabledPlatforms();
   if (selectedPlats.length === 0) {
-    errorEl.textContent = "Please select at least one platform before generating content.";
+    errorEl.textContent = "Please select and enable at least one platform before generating content.";
     errorEl.style.display = "block";
     return;
   }
