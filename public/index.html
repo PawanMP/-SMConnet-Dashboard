@@ -700,6 +700,10 @@
       <span>Help Guide</span>
     </div>
 
+    <div class="nav-item" data-page="privacy-policy">
+      <span class="nav-icon">🛡️</span><span>Privacy Policy</span>
+    </div>
+
     <div style="height:1px;background:#e4e6eb;margin:8px 16px"></div>
 
     <div class="nav-item" id="logout-btn" style="color: #c62828;">
@@ -1648,6 +1652,110 @@
       <div class="alert info" style="margin-top:20px">
         💡 <strong>Pro Tip:</strong> Tokens from the Explorer are short-lived (2 hours). For long-term use, use the "Access Token Tool" in the Meta Developer Portal to generate 60-day tokens.
       </div>
+    </div>
+  </section>
+
+  <!-- ── PRIVACY POLICY ── -->
+  <section class="page" id="page-privacy-policy">
+    <div class="page-header">
+      <h1>🛡️ Privacy Policy</h1>
+      <p>Data privacy practices and platform API compliance guidelines for Social Poster v4.0</p>
+    </div>
+
+    <div class="card" style="max-width:850px;margin-bottom:20px">
+      <div class="settings-section-title">1. Overview & Application Scope</div>
+      <p style="font-size:14px;color:#444;line-height:1.6;margin-bottom:12px">
+        <strong>Social Poster</strong> is a multi-platform social media management application designed to help users create, schedule, and publish content across social networks including <strong>Facebook, Instagram, YouTube, TikTok, and Pinterest</strong>.
+      </p>
+      <p style="font-size:14px;color:#444;line-height:1.6">
+        We are committed to maintaining the trust and confidence of our users by upholding strict data protection standards and protecting the security of your connected accounts.
+      </p>
+    </div>
+
+    <div class="card" style="max-width:850px;margin-bottom:20px">
+      <div class="settings-section-title">2. Information Collection, Storage & Use</div>
+      <ul style="font-size:14px;color:#444;line-height:1.8;padding-left:20px">
+        <li style="margin-bottom:10px">
+          <strong>Local Credential Storage:</strong> Your authentication credentials (Page IDs, Access Tokens, Client Keys, and API secret keys) are stored locally on your application server within configuration files (<code>config.json</code>). They are used strictly to sign API requests to third-party platforms on your behalf.
+        </li>
+        <li style="margin-bottom:10px">
+          <strong>Media Upload Processing:</strong> Media files (images and videos) uploaded for publishing or scheduling are processed through the local <code>uploads/</code> directory. Media is retained temporarily to complete scheduled or immediate platform uploads, after which temporary files are purged.
+        </li>
+        <li style="margin-bottom:10px">
+          <strong>AI Captions & Vision Assistance:</strong> If enabled, prompt texts and image previews may be submitted to OpenAI APIs strictly for content generation. No training data or user credentials are shared.
+        </li>
+        <li>
+          <strong>No Data Selling or Sharing:</strong> Social Poster does not sell, rent, monetize, or transfer your personal data, tokens, media uploads, or connected account metrics to any third parties or advertising networks.
+        </li>
+      </ul>
+    </div>
+
+    <div class="card" style="max-width:850px;margin-bottom:20px">
+      <div class="settings-section-title">3. Third-Party API Services & Compliance</div>
+      <p style="font-size:14px;color:#444;line-height:1.6;margin-bottom:14px">
+        Social Poster integrates with third-party social media platform APIs. By using these features, you agree to comply with the respective platform policies:
+      </p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:16px">
+          <div style="display:flex;align-items:center;gap:8px;font-size:15px;font-weight:700;color:#1877f2;margin-bottom:8px">
+            <span>📘</span> Meta (Facebook & Instagram)
+          </div>
+          <p style="font-size:13px;color:#65676b;line-height:1.5">
+            Uses Meta Graph API to read page details and publish user-selected media. Adheres to Meta Developer Policies and Platform Terms.
+          </p>
+        </div>
+        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:16px">
+          <div style="display:flex;align-items:center;gap:8px;font-size:15px;font-weight:700;color:#dc2626;margin-bottom:8px">
+            <span>📽️</span> YouTube (Google API Services)
+          </div>
+          <p style="font-size:13px;color:#65676b;line-height:1.5">
+            Uses YouTube Data API v3. Users are bound by the <a href="https://www.youtube.com/t/terms" target="_blank" style="color:#dc2626;font-weight:600">YouTube Terms of Service</a> and <a href="https://policies.google.com/privacy" target="_blank" style="color:#dc2626;font-weight:600">Google Privacy Policy</a>.
+          </p>
+        </div>
+        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:16px">
+          <div style="display:flex;align-items:center;gap:8px;font-size:15px;font-weight:700;color:#000;margin-bottom:8px">
+            <span>🎵</span> TikTok
+          </div>
+          <p style="font-size:13px;color:#65676b;line-height:1.5">
+            Uses TikTok Content Posting API. Video content and metadata are uploaded strictly according to TikTok Developer Guidelines.
+          </p>
+        </div>
+        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:16px">
+          <div style="display:flex;align-items:center;gap:8px;font-size:15px;font-weight:700;color:#E60023;margin-bottom:8px">
+            <span>📌</span> Pinterest
+          </div>
+          <p style="font-size:13px;color:#65676b;line-height:1.5">
+            Uses Pinterest Pins API to create Pins on user-specified boards in compliance with Pinterest API Terms.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="max-width:850px;margin-bottom:20px">
+      <div class="settings-section-title">4. User Controls, Revocation & Data Deletion</div>
+      <p style="font-size:14px;color:#444;line-height:1.6;margin-bottom:12px">
+        You retain full control over your data and connected account permissions:
+      </p>
+      <ul style="font-size:14px;color:#444;line-height:1.8;padding-left:20px">
+        <li><strong>Clear Saved Credentials:</strong> You can remove or overwrite saved access tokens anytime within each platform's settings screen in this dashboard.</li>
+        <li><strong>Revoke API Access:</strong> You can revoke Social Poster's access to your social media accounts at any time directly through each platform's app security settings:
+          <ul style="margin-top:6px;margin-bottom:6px;padding-left:20px;font-size:13px;color:#65676b">
+            <li>Google / YouTube: <a href="https://myaccount.google.com/permissions" target="_blank" style="color:#1877f2">Google Security Permissions</a></li>
+            <li>Meta / Facebook / Instagram: <a href="https://www.facebook.com/settings?tab=business_tools" target="_blank" style="color:#1877f2">Meta Business Integrations</a></li>
+            <li>TikTok: <a href="https://www.tiktok.com/setting" target="_blank" style="color:#1877f2">TikTok Security Settings</a></li>
+            <li>Pinterest: <a href="https://www.pinterest.com/settings/apps" target="_blank" style="color:#1877f2">Pinterest Connected Apps</a></li>
+          </ul>
+        </li>
+        <li><strong>Data Purge:</strong> Deleting the local configuration file or uninstalling the server removes all local settings, scheduled tasks, and session records permanently.</li>
+      </ul>
+    </div>
+
+    <div class="card" style="max-width:850px">
+      <div class="settings-section-title">5. Security & Updates</div>
+      <p style="font-size:14px;color:#444;line-height:1.6;margin-bottom:10px">
+        Admin dashboard access is protected by token-based authentication. We periodically update this privacy policy to reflect new features and API requirement changes.
+      </p>
+      <div style="font-size:12px;color:#b0b3b8">Last updated: September 2026 · Social Poster Version 4.0</div>
     </div>
   </section>
 
