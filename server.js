@@ -4,11 +4,17 @@ const axios   = require("axios");
 const FormData = require("form-data");
 const fs   = require("fs");
 const path = require("path");
+const os   = require("os");
 const { google } = require("googleapis");
 
 const app  = express();
-const PORT = 3000;
-const CONFIG_FILE = path.join(__dirname, "config.json");
+const PORT = process.env.PORT || 3000;
+
+const isVercel = !!process.env.VERCEL || process.env.NODE_ENV === "production";
+const TMP_DIR = os.tmpdir();
+const CONFIG_FILE = isVercel
+  ? path.join(TMP_DIR, "config.json")
+  : path.join(__dirname, "config.json");
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -21,13 +27,21 @@ function loadConfig() {
     tkClientKey: "", tkAccessToken: "",
     pinAppId: "", pinAccessToken: "", pinBoardId: ""
   };
-  if (!fs.existsSync(CONFIG_FILE)) return defaults;
-  try { return { ...defaults, ...JSON.parse(fs.readFileSync(CONFIG_FILE, "utf8")) }; }
+  let targetFile = CONFIG_FILE;
+  if (!fs.existsSync(targetFile) && fs.existsSync(path.join(__dirname, "config.json"))) {
+    targetFile = path.join(__dirname, "config.json");
+  }
+  if (!fs.existsSync(targetFile)) return defaults;
+  try { return { ...defaults, ...JSON.parse(fs.readFileSync(targetFile, "utf8")) }; }
   catch { return defaults; }
 }
 
 function saveConfig(data) {
-  fs.writeFileSync(CONFIG_FILE, JSON.stringify(data, null, 2));
+  try {
+    fs.writeFileSync(CONFIG_FILE, JSON.stringify(data, null, 2));
+  } catch (err) {
+    console.error("Failed to save config:", err);
+  }
 }
 
 // ─── Middleware ───────────────────────────────────────────────────────────────
@@ -73,8 +87,12 @@ app.use("/post-to-facebook", authMiddleware);
 app.use("/post-to-instagram", authMiddleware);
 app.use("/post-to-youtube", authMiddleware);
 
-const UPLOADS_DIR = path.join(__dirname, "uploads");
-if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR);
+const UPLOADS_DIR = isVercel
+  ? path.join(TMP_DIR, "uploads")
+  : path.join(__dirname, "uploads");
+if (!fs.existsSync(UPLOADS_DIR)) {
+  try { fs.mkdirSync(UPLOADS_DIR, { recursive: true }); } catch (err) {}
+}
 
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => cb(null, UPLOADS_DIR),
@@ -741,16 +759,26 @@ app.post("/api/publish-multi", upload.single("file"), async (req, res) => {
 //  SCHEDULED POSTS SYSTEM
 // ═══════════════════════════════════════════════════════════════════════════════
 
-const SCHEDULED_POSTS_FILE = path.join(__dirname, "scheduled_posts.json");
+const SCHEDULED_POSTS_FILE = isVercel
+  ? path.join(TMP_DIR, "scheduled_posts.json")
+  : path.join(__dirname, "scheduled_posts.json");
 
 function loadScheduledPosts() {
-  if (!fs.existsSync(SCHEDULED_POSTS_FILE)) return [];
-  try { return JSON.parse(fs.readFileSync(SCHEDULED_POSTS_FILE, "utf8")); }
+  let targetFile = SCHEDULED_POSTS_FILE;
+  if (!fs.existsSync(targetFile) && fs.existsSync(path.join(__dirname, "scheduled_posts.json"))) {
+    targetFile = path.join(__dirname, "scheduled_posts.json");
+  }
+  if (!fs.existsSync(targetFile)) return [];
+  try { return JSON.parse(fs.readFileSync(targetFile, "utf8")); }
   catch { return []; }
 }
 
 function saveScheduledPosts(posts) {
-  fs.writeFileSync(SCHEDULED_POSTS_FILE, JSON.stringify(posts, null, 2));
+  try {
+    fs.writeFileSync(SCHEDULED_POSTS_FILE, JSON.stringify(posts, null, 2));
+  } catch (err) {
+    console.error("Failed to save scheduled posts:", err);
+  }
 }
 
 // POST /api/schedule-post  →  create a scheduled post
@@ -953,7 +981,8 @@ async function checkScheduledPostsWorker() {
 }
 
 // Run scheduler worker every 15 seconds
-setInterval(checkScheduledPostsWorker, 15000);
+const schedulerTimer = setInterval(checkScheduledPostsWorker, 15000);
+if (schedulerTimer && schedulerTimer.unref) schedulerTimer.unref();
 
 // ═══════════════════════════════════════════════════════════════════════════════
 //  OPENAI AI ASSISTANT API
@@ -1226,8 +1255,23 @@ app.post("/api/generate-single", upload.single("file"), async (req, res) => {
   }
 });
 
-// ─── Start ────────────────────────────────────────────────────────────────────
+// ─── Catch-all Static Fallback & Server Export ────────────────────────────────
 
+app.get("*", (req, res, next) => {
+  if (req.path.startsWith("/api") || req.path.startsWith("/post-to-")) {
+    return next();
+  }
+  const indexPath = path.join(__dirname, "public", "index.html");
+  if (fs.existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    res.status(404).send("Not found");
+  }
+});
 
-app.listen(PORT, () => console.log(`Server running at http://localhost:${PORT}`));
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => console.log(`Server running at http://localhost:${PORT}`));
+}
+
+module.exports = app;
 
