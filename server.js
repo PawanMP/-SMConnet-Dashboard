@@ -1,3 +1,5 @@
+require("dotenv").config();
+
 const express = require("express");
 const multer  = require("multer");
 const axios   = require("axios");
@@ -6,6 +8,7 @@ const fs   = require("fs");
 const path = require("path");
 const os   = require("os");
 const { google } = require("googleapis");
+const cloudinary = require("cloudinary").v2;
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -16,24 +19,74 @@ const CONFIG_FILE = isVercel
   ? path.join(TMP_DIR, "config.json")
   : path.join(__dirname, "config.json");
 
+// ─── Cloudinary Helper ────────────────────────────────────────────────────────
+if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
+  cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+  });
+}
+
+async function uploadToCloudinary(filePath) {
+  if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+    return null;
+  }
+  if (!filePath || !fs.existsSync(filePath)) return null;
+  try {
+    const res = await cloudinary.uploader.upload(filePath, { resource_type: "auto" });
+    return res.secure_url;
+  } catch (err) {
+    console.error("Cloudinary upload error:", err.message);
+    return null;
+  }
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function loadConfig() {
-  const defaults = {
-    pageId: "", accessToken: "",
-    igAccountId: "", igAccessToken: "",
-    ytChannelId: "", ytAccessToken: "",
-    openaiApiKey: "", openaiModel: "gpt-4o-mini",
-    tkClientKey: "", tkAccessToken: "",
-    pinAppId: "", pinAccessToken: "", pinBoardId: ""
+  const envDefaults = {
+    pageId: process.env.FB_PAGE_ID || process.env.FACEBOOK_PAGE_ID || "",
+    accessToken: process.env.FB_ACCESS_TOKEN || process.env.FACEBOOK_ACCESS_TOKEN || "",
+    igAccountId: process.env.IG_ACCOUNT_ID || process.env.INSTAGRAM_ACCOUNT_ID || "",
+    igAccessToken: process.env.IG_ACCESS_TOKEN || process.env.INSTAGRAM_ACCESS_TOKEN || "",
+    ytChannelId: process.env.YT_CHANNEL_ID || process.env.YOUTUBE_CHANNEL_ID || "",
+    ytAccessToken: process.env.YT_ACCESS_TOKEN || process.env.YOUTUBE_ACCESS_TOKEN || "",
+    openaiApiKey: process.env.OPENAI_API_KEY || "",
+    openaiModel: process.env.OPENAI_MODEL || "gpt-4o-mini",
+    tkClientKey: process.env.TK_CLIENT_KEY || process.env.TIKTOK_CLIENT_KEY || "",
+    tkAccessToken: process.env.TK_ACCESS_TOKEN || process.env.TIKTOK_ACCESS_TOKEN || "",
+    pinAppId: process.env.PIN_APP_ID || process.env.PINTEREST_APP_ID || "",
+    pinAccessToken: process.env.PIN_ACCESS_TOKEN || process.env.PINTEREST_ACCESS_TOKEN || "",
+    pinBoardId: process.env.PIN_BOARD_ID || process.env.PINTEREST_BOARD_ID || ""
   };
+
+  let fileConfig = {};
   let targetFile = CONFIG_FILE;
   if (!fs.existsSync(targetFile) && fs.existsSync(path.join(__dirname, "config.json"))) {
     targetFile = path.join(__dirname, "config.json");
   }
-  if (!fs.existsSync(targetFile)) return defaults;
-  try { return { ...defaults, ...JSON.parse(fs.readFileSync(targetFile, "utf8")) }; }
-  catch { return defaults; }
+
+  if (fs.existsSync(targetFile)) {
+    try { fileConfig = JSON.parse(fs.readFileSync(targetFile, "utf8")); }
+    catch {}
+  }
+
+  return {
+    pageId: envDefaults.pageId || fileConfig.pageId || "",
+    accessToken: envDefaults.accessToken || fileConfig.accessToken || "",
+    igAccountId: envDefaults.igAccountId || fileConfig.igAccountId || "",
+    igAccessToken: envDefaults.igAccessToken || fileConfig.igAccessToken || "",
+    ytChannelId: envDefaults.ytChannelId || fileConfig.ytChannelId || "",
+    ytAccessToken: envDefaults.ytAccessToken || fileConfig.ytAccessToken || "",
+    openaiApiKey: envDefaults.openaiApiKey || fileConfig.openaiApiKey || "",
+    openaiModel: fileConfig.openaiModel || envDefaults.openaiModel || "gpt-4o-mini",
+    tkClientKey: envDefaults.tkClientKey || fileConfig.tkClientKey || "",
+    tkAccessToken: envDefaults.tkAccessToken || fileConfig.tkAccessToken || "",
+    pinAppId: envDefaults.pinAppId || fileConfig.pinAppId || "",
+    pinAccessToken: envDefaults.pinAccessToken || fileConfig.pinAccessToken || "",
+    pinBoardId: envDefaults.pinBoardId || fileConfig.pinBoardId || ""
+  };
 }
 
 function saveConfig(data) {
@@ -51,7 +104,7 @@ app.use(express.static(path.join(__dirname, "public")));
 
 // ─── Authentication Helper & Routes ──────────────────────────────────────────
 
-const AUTH_TOKEN = "admin-secret-session-token-123456";
+const AUTH_TOKEN = process.env.AUTH_TOKEN || "admin-secret-session-token-123456";
 
 // Auth middleware
 const authMiddleware = (req, res, next) => {
@@ -66,7 +119,9 @@ const authMiddleware = (req, res, next) => {
 
 app.post("/api/login", (req, res) => {
   const { username, password } = req.body;
-  if (username === "admin" && password === "admin123") {
+  const adminUser = process.env.ADMIN_USERNAME || "admin";
+  const adminPass = process.env.ADMIN_PASSWORD || "admin123";
+  if (username === adminUser && password === adminPass) {
     res.json({ success: true, token: AUTH_TOKEN });
   } else {
     res.status(401).json({ success: false, message: "Invalid username or password" });
@@ -626,8 +681,11 @@ async function executePlatformPublish(platform, payload, filePath) {
     const hashtagsField = (payload.ig_hashtags || "").trim();
     const fullCaption = hashtagsField ? `${captionField}\n\n${hashtagsField}` : captionField;
 
-    const imageUrl = (payload.image_url || "").trim();
-    if (!imageUrl) return { success: false, message: "Instagram API requires a public URL for media." };
+    let imageUrl = (payload.image_url || "").trim();
+    if (!imageUrl && filePath) {
+      imageUrl = (await uploadToCloudinary(filePath)) || "";
+    }
+    if (!imageUrl) return { success: false, message: "Instagram API requires a public URL for media. Provide a public URL or configure Cloudinary environment variables." };
 
     const params = { caption: fullCaption, access_token: cfg.igAccessToken };
     if (isVideo) { params.media_type = "REELS"; params.video_url = imageUrl; }
@@ -700,8 +758,11 @@ async function executePlatformPublish(platform, payload, filePath) {
     const pinHashtags = (payload.pin_hashtags || "").trim();
     const fullDesc = pinHashtags ? `${pinDesc}\n\n${pinHashtags}` : pinDesc;
 
-    const imageUrl = (payload.image_url || "").trim();
-    if (!imageUrl) return { success: false, message: "Pinterest API requires a public image URL." };
+    let imageUrl = (payload.image_url || "").trim();
+    if (!imageUrl && filePath) {
+      imageUrl = (await uploadToCloudinary(filePath)) || "";
+    }
+    if (!imageUrl) return { success: false, message: "Pinterest API requires a public image URL. Provide a public URL or configure Cloudinary environment variables." };
 
     const pinRes = await axios.post(
       "https://api.pinterest.com/v5/pins",
