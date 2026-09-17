@@ -85,7 +85,9 @@ function loadConfig() {
     tkAccessToken: envDefaults.tkAccessToken || fileConfig.tkAccessToken || "",
     pinAppId: envDefaults.pinAppId || fileConfig.pinAppId || "",
     pinAccessToken: envDefaults.pinAccessToken || fileConfig.pinAccessToken || "",
-    pinBoardId: envDefaults.pinBoardId || fileConfig.pinBoardId || ""
+    pinBoardId: envDefaults.pinBoardId || fileConfig.pinBoardId || "",
+    adminUsername: fileConfig.adminUsername || process.env.ADMIN_USERNAME || "admin",
+    adminPassword: fileConfig.adminPassword || process.env.ADMIN_PASSWORD || "admin123"
   };
 }
 
@@ -119,17 +121,59 @@ const authMiddleware = (req, res, next) => {
 
 app.post("/api/login", (req, res) => {
   const { username, password } = req.body;
-  const adminUser = process.env.ADMIN_USERNAME || "admin";
-  const adminPass = process.env.ADMIN_PASSWORD || "admin123";
-  if (username === adminUser && password === adminPass) {
-    res.json({ success: true, token: AUTH_TOKEN });
+  const cfg = loadConfig();
+  if (username === cfg.adminUsername && password === cfg.adminPassword) {
+    res.json({ success: true, token: AUTH_TOKEN, username: cfg.adminUsername });
   } else {
     res.status(401).json({ success: false, message: "Invalid username or password" });
   }
 });
 
 app.get("/api/verify-token", authMiddleware, (req, res) => {
-  res.json({ success: true, message: "Token is valid" });
+  const cfg = loadConfig();
+  res.json({ success: true, message: "Token is valid", username: cfg.adminUsername });
+});
+
+// ─── Account Settings API ───────────────────────────────────────────────────
+
+app.get("/api/account/settings", authMiddleware, (_req, res) => {
+  const cfg = loadConfig();
+  res.json({
+    success: true,
+    username: cfg.adminUsername
+  });
+});
+
+app.post("/api/account/settings", authMiddleware, (req, res) => {
+  const { currentPassword, newUsername, newPassword } = req.body;
+  const cfg = loadConfig();
+
+  if (!currentPassword) {
+    return res.status(400).json({ success: false, message: "Current password is required to make changes." });
+  }
+
+  if (currentPassword !== cfg.adminPassword) {
+    return res.status(400).json({ success: false, message: "Incorrect current password." });
+  }
+
+  if (!newUsername && !newPassword) {
+    return res.status(400).json({ success: false, message: "Please provide a new username or new password to update." });
+  }
+
+  if (newUsername) {
+    cfg.adminUsername = newUsername.trim();
+  }
+
+  if (newPassword) {
+    cfg.adminPassword = newPassword.trim();
+  }
+
+  saveConfig(cfg);
+  res.json({
+    success: true,
+    message: "Account settings updated successfully.",
+    username: cfg.adminUsername
+  });
 });
 
 // Intercept all other APIs and publish routes

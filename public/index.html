@@ -655,7 +655,7 @@
 
 <!-- ═══════════════════ SIDEBAR ═══════════════════ -->
 <aside class="sidebar">
-  <div class="sidebar-logo">
+  <div class="sidebar-logo" onclick="goTo('dashboard')" style="cursor: pointer;" title="Back to Dashboard">
     <div class="logo-icon" style="background:linear-gradient(135deg,#1877f2,#C13584)">S</div>
     <div>
       <div class="logo-text">Social Poster</div>
@@ -693,6 +693,10 @@
 
     <div class="nav-item" data-page="ai-settings">
       <span class="nav-icon">🪄</span><span>AI Settings</span>
+    </div>
+
+    <div class="nav-item" data-page="account-settings">
+      <span class="nav-icon">⚙️</span><span>Account Settings</span>
     </div>
     
     <div class="nav-item" data-page="help">
@@ -1580,6 +1584,58 @@
     </div>
   </section>
 
+  <!-- ── ACCOUNT SETTINGS ── -->
+  <section class="page" id="page-account-settings">
+    <div class="page-header">
+      <h1>⚙️ Account Settings</h1>
+      <p>Manage your account credentials, login security, and password</p>
+    </div>
+    
+    <div class="card" style="max-width:560px">
+      <div class="settings-section-title">Change Username & Password</div>
+      <form id="account-settings-form">
+        <div class="field">
+          <label for="acc-username">Username</label>
+          <input type="text" class="hashtag-input" id="acc-username" placeholder="Enter username" required autocomplete="username" />
+        </div>
+
+        <div class="field">
+          <label for="acc-current-password">Current Password <span style="color:#e53935">*</span></label>
+          <div class="input-group">
+            <input type="password" id="acc-current-password" placeholder="Enter current password to confirm changes" required autocomplete="current-password" style="width: 100%; border: 1px solid #c8ccd0; border-radius: 8px; padding: 10px 12px; font-size: 14px; color: #1c1e21; outline: none; background: #fff; font-family: inherit;" />
+            <button type="button" class="eye-btn" onclick="togglePassField('acc-current-password')" title="Show/hide password">👁</button>
+          </div>
+          <div class="input-hint">Required to save any changes to username or password.</div>
+        </div>
+        
+        <div class="field">
+          <label for="acc-new-password">New Password <span style="color:#65676b;font-weight:normal">(Leave blank if keeping current)</span></label>
+          <div class="input-group">
+            <input type="password" id="acc-new-password" placeholder="Enter new password" autocomplete="new-password" style="width: 100%; border: 1px solid #c8ccd0; border-radius: 8px; padding: 10px 12px; font-size: 14px; color: #1c1e21; outline: none; background: #fff; font-family: inherit;" />
+            <button type="button" class="eye-btn" onclick="togglePassField('acc-new-password')" title="Show/hide password">👁</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="acc-confirm-password">Confirm New Password</label>
+          <div class="input-group">
+            <input type="password" id="acc-confirm-password" placeholder="Confirm new password" autocomplete="new-password" style="width: 100%; border: 1px solid #c8ccd0; border-radius: 8px; padding: 10px 12px; font-size: 14px; color: #1c1e21; outline: none; background: #fff; font-family: inherit;" />
+            <button type="button" class="eye-btn" onclick="togglePassField('acc-confirm-password')" title="Show/hide password">👁</button>
+          </div>
+        </div>
+
+        <div class="btn-row" style="margin-top:20px">
+          <button type="submit" class="btn-primary" id="acc-save-btn">
+            <span class="spinner" id="acc-save-spinner" style="display:none"></span>
+            <span id="acc-save-btn-text">Save Account Changes</span>
+          </button>
+        </div>
+      </form>
+      <div class="alert success" id="acc-save-success" style="margin-top:14px;display:none"></div>
+      <div class="alert error"   id="acc-save-error"   style="margin-top:14px;display:none"></div>
+    </div>
+  </section>
+
   <!-- ── HELP GUIDE ── -->
   <section class="page" id="page-help">
     <div class="page-header">
@@ -1873,6 +1929,7 @@ function goTo(pageId) {
   if (pageId === "tiktok")          tkLoadSettingsStatus();
   if (pageId === "pinterest")       pinLoadSettingsStatus();
   if (pageId === "ai-settings")     aiLoadSettingsStatus();
+  if (pageId === "account-settings") loadAccountSettings();
   if (pageId === "scheduled-posts") loadScheduledPostsList();
 }
 
@@ -3346,12 +3403,103 @@ document.getElementById("pin-settings-form")?.addEventListener("submit", async e
   }
 });
 
+// ── Account Settings Helper Functions ───────────────────────────────────────
+async function loadAccountSettings() {
+  try {
+    const res = await fetch("/api/account/settings");
+    const data = await res.json();
+    if (data.success && data.username) {
+      const usernameInput = document.getElementById("acc-username");
+      if (usernameInput) usernameInput.value = data.username;
+    }
+  } catch (err) {
+    console.error("Error loading account settings:", err);
+  }
+}
+
+function togglePassField(fieldId) {
+  const input = document.getElementById(fieldId);
+  if (input) {
+    input.type = input.type === 'password' ? 'text' : 'password';
+  }
+}
+
+document.getElementById("account-settings-form")?.addEventListener("submit", async e => {
+  e.preventDefault();
+  const newUsername     = document.getElementById("acc-username").value.trim();
+  const currentPassword = document.getElementById("acc-current-password").value.trim();
+  const newPassword     = document.getElementById("acc-new-password").value.trim();
+  const confirmPassword = document.getElementById("acc-confirm-password").value.trim();
+
+  const saveBtn   = document.getElementById("acc-save-btn");
+  const spinner   = document.getElementById("acc-save-spinner");
+  const saveTxt   = document.getElementById("acc-save-btn-text");
+  const successEl = document.getElementById("acc-save-success");
+  const errorEl   = document.getElementById("acc-save-error");
+
+  if (successEl) successEl.style.display = "none";
+  if (errorEl)   errorEl.style.display = "none";
+
+  if (!currentPassword) {
+    if (errorEl) { errorEl.textContent = "❌ Current password is required to save changes."; errorEl.style.display = "block"; }
+    return;
+  }
+
+  if (newPassword && newPassword !== confirmPassword) {
+    if (errorEl) { errorEl.textContent = "❌ New password and confirmation do not match."; errorEl.style.display = "block"; }
+    return;
+  }
+
+  if (saveBtn && spinner && saveTxt) {
+    saveBtn.disabled = true;
+    spinner.style.display = "inline-block";
+    saveTxt.textContent = "Saving…";
+  }
+
+  try {
+    const res = await fetch("/api/account/settings", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ currentPassword, newUsername, newPassword })
+    });
+    const data = await res.json();
+    if (data.success) {
+      if (successEl) {
+        successEl.textContent = "✅ " + data.message;
+        successEl.style.display = "block";
+      }
+      document.getElementById("acc-current-password").value = "";
+      document.getElementById("acc-new-password").value = "";
+      document.getElementById("acc-confirm-password").value = "";
+      if (data.username) {
+        document.getElementById("acc-username").value = data.username;
+      }
+    } else {
+      if (errorEl) {
+        errorEl.textContent = "❌ " + (data.message || "Failed to update account settings.");
+        errorEl.style.display = "block";
+      }
+    }
+  } catch {
+    if (errorEl) {
+      errorEl.textContent = "❌ Network error. Please try again.";
+      errorEl.style.display = "block";
+    }
+  } finally {
+    if (saveBtn && spinner && saveTxt) {
+      saveBtn.disabled = false;
+      spinner.style.display = "none";
+      saveTxt.textContent = "Save Account Changes";
+    }
+  }
+});
+
 // ── window.fetch Wrapper for Authentication ──────────────────────────────────
 const originalFetch = window.fetch;
 window.fetch = async function(url, options) {
   options = options || {};
   options.headers = options.headers || {};
-  const token = localStorage.getItem("authToken");
+  const token = sessionStorage.getItem("authToken");
   
   if (token) {
     if (options.headers instanceof Headers) {
@@ -3366,7 +3514,7 @@ window.fetch = async function(url, options) {
   const response = await originalFetch(url, options);
   
   if (response.status === 401 && !url.includes("/api/login")) {
-    localStorage.removeItem("authToken");
+    sessionStorage.removeItem("authToken");
     showLoginScreen();
   }
   
@@ -3413,7 +3561,7 @@ document.getElementById("login-form")?.addEventListener("submit", async e => {
     });
     const data = await res.json();
     if (res.ok && data.success) {
-      localStorage.setItem("authToken", data.token);
+      sessionStorage.setItem("authToken", data.token);
       showAppScreen();
       goTo("dashboard");
     } else {
@@ -3435,7 +3583,7 @@ document.getElementById("login-form")?.addEventListener("submit", async e => {
 
 // Bind logout click
 document.getElementById("logout-btn")?.addEventListener("click", () => {
-  localStorage.removeItem("authToken");
+  sessionStorage.removeItem("authToken");
   showLoginScreen();
 });
 
@@ -3444,7 +3592,9 @@ function refreshDashboard() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  const token = localStorage.getItem("authToken");
+  // Clear any legacy persistent token
+  localStorage.removeItem("authToken");
+  const token = sessionStorage.getItem("authToken");
   if (!token) {
     showLoginScreen();
   } else {
