@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Social Poster — Help Guide</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+
+<!-- Login Screen -->
+<div id="login-container">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="logo-icon">S</div>
+      <h2>Welcome Back</h2>
+      <p>Sign in to access your Multi-Platform Social Poster</p>
+    </div>
+
+    <form id="login-form">
+      <div class="login-field">
+        <label for="login-username">Username</label>
+        <input type="text" id="login-username" placeholder="Enter username" required />
+      </div>
+
+      <div class="login-field">
+        <label for="login-password">Password</label>
+        <input type="password" id="login-password" placeholder="Enter password" required />
+      </div>
+
+      <div class="login-error-alert" id="login-error"></div>
+
+      <button type="submit" class="login-btn" id="login-btn-submit">
+        <span class="spinner" id="login-spinner"></span>
+        <span>Sign In</span>
+      </button>
+    </form>
+
+    <div class="login-credentials-box">
+      <h4>Default Test Credentials</h4>
+      <div class="login-credentials-grid">
+        <div class="login-cred-badge" onclick="fillCredentials('admin')">
+          <span class="login-cred-label">Username</span>
+          <span class="login-cred-value">admin</span>
+        </div>
+        <div class="login-cred-badge" onclick="fillCredentials('admin123')">
+          <span class="login-cred-label">Password</span>
+          <span class="login-cred-value">admin123</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="app-container" style="display: none; width: 100%; min-height: 100vh;">
+
+<aside class="sidebar">
+  <div class="sidebar-logo" onclick="goTo('dashboard')" style="cursor: pointer;" title="Back to Dashboard">
+    <div class="logo-icon" style="background:linear-gradient(135deg,#1877f2,#C13584)">S</div>
+    <div>
+      <div class="logo-text">Social Poster</div>
+      <div class="logo-sub">Multi-Platform</div>
+    </div>
+  </div>
+  <nav class="nav">
+    <div class="nav-item" data-page="dashboard"><span class="nav-icon">🏠</span><span>Dashboard</span></div>
+    <div class="nav-item" data-page="scheduled-posts"><span class="nav-icon">📅</span><span>Scheduled Posts</span></div>
+    <div style="height:1px;background:#e4e6eb;margin:8px 16px"></div>
+    <div class="nav-item" data-page="facebook"><span class="nav-icon">📘</span><span>Facebook</span></div>
+    <div class="nav-item ig-hover" data-page="instagram"><span class="nav-icon">📸</span><span>Instagram</span></div>
+    <div class="nav-item yt-hover" data-page="youtube"><span class="nav-icon">📽️</span><span>YouTube</span></div>
+    <div class="nav-item tk-hover" data-page="tiktok"><span class="nav-icon">🎵</span><span>TikTok</span></div>
+    <div class="nav-item pin-hover" data-page="pinterest"><span class="nav-icon">📌</span><span>Pinterest</span></div>
+    <div style="height:1px;background:#e4e6eb;margin:8px 16px"></div>
+    <div class="nav-item" data-page="ai-settings"><span class="nav-icon">🪄</span><span>AI Settings</span></div>
+    <div class="nav-item" data-page="account-settings"><span class="nav-icon">⚙️</span><span>Account Settings</span></div>
+    <div class="nav-item active" data-page="help"><span class="nav-icon">❓</span><span>Help Guide</span></div>
+    <div class="nav-item" data-page="privacy-policy"><span class="nav-icon">🛡️</span><span>Privacy Policy</span></div>
+    <div class="nav-item" data-page="terms-of-service"><span class="nav-icon">📜</span><span>Terms of Service</span></div>
+    <div style="height:1px;background:#e4e6eb;margin:8px 16px"></div>
+    <div class="nav-item" id="logout-btn" style="color: #c62828;"><span class="nav-icon">🚪</span><span>Logout</span></div>
+  </nav>
+  <div class="sidebar-footer">v4.0 · Multi-Platform Social Poster</div>
+</aside>
+
+<main class="main">
+  <section class="page active" id="page-help">
+    <div class="page-header">
+      <h1>Setup &amp; Publishing Help Guide</h1>
+      <p>Step-by-step instructions to get API keys, schedule content, and publish</p>
+    </div>
+
+    <div class="card" style="margin-bottom:20px">
+      <h2 style="font-size:16px;font-weight:700;color:#1c1e21;margin-bottom:12px">🚀 Quick Start Checklist</h2>
+      <ol style="padding-left:20px;font-size:14px;color:#1c1e21;line-height:1.7">
+        <li>Navigate to individual platform settings (Facebook, Instagram, YouTube, TikTok, Pinterest) in the sidebar.</li>
+        <li>Enter your API Access Tokens, Page IDs, or Channel IDs for each channel you wish to use.</li>
+        <li>(Optional) Configure your OpenAI API Key under <strong>AI Settings</strong> for auto-generated captions and hashtags.</li>
+        <li>Go to the <strong>Dashboard</strong>, upload photo or video media, pick target platforms, draft captions, and hit <strong>Publish Now</strong> or <strong>Schedule Post</strong>.</li>
+      </ol>
+    </div>
+
+    <div class="card" style="margin-bottom:20px">
+      <h2 style="font-size:16px;font-weight:700;color:#1c1e21;margin-bottom:12px">📅 Post Scheduling System</h2>
+      <p style="font-size:13.5px;color:#65676b;line-height:1.6">
+        When scheduling posts, you can set individual date-time pickers per platform or use the Bulk Schedule Picker to set a unified publishing time across all accounts. View and manage queued posts under the <strong>Scheduled Posts</strong> page.
+      </p>
+    </div>
+  </section>
+</main>
+
+</div>
+
+<script src="/js/auth.js"></script>
+<script src="/js/nav.js"></script>
+</body>
+</html>

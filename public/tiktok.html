@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Social Poster — TikTok Settings</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+
+<!-- Login Screen -->
+<div id="login-container">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="logo-icon">S</div>
+      <h2>Welcome Back</h2>
+      <p>Sign in to access your Multi-Platform Social Poster</p>
+    </div>
+
+    <form id="login-form">
+      <div class="login-field">
+        <label for="login-username">Username</label>
+        <input type="text" id="login-username" placeholder="Enter username" required />
+      </div>
+
+      <div class="login-field">
+        <label for="login-password">Password</label>
+        <input type="password" id="login-password" placeholder="Enter password" required />
+      </div>
+
+      <div class="login-error-alert" id="login-error"></div>
+
+      <button type="submit" class="login-btn" id="login-btn-submit">
+        <span class="spinner" id="login-spinner"></span>
+        <span>Sign In</span>
+      </button>
+    </form>
+
+    <div class="login-credentials-box">
+      <h4>Default Test Credentials</h4>
+      <div class="login-credentials-grid">
+        <div class="login-cred-badge" onclick="fillCredentials('admin')">
+          <span class="login-cred-label">Username</span>
+          <span class="login-cred-value">admin</span>
+        </div>
+        <div class="login-cred-badge" onclick="fillCredentials('admin123')">
+          <span class="login-cred-label">Password</span>
+          <span class="login-cred-value">admin123</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="app-container" style="display: none; width: 100%; min-height: 100vh;">
+
+<aside class="sidebar">
+  <div class="sidebar-logo" onclick="goTo('dashboard')" style="cursor: pointer;" title="Back to Dashboard">
+    <div class="logo-icon" style="background:linear-gradient(135deg,#1877f2,#C13584)">S</div>
+    <div>
+      <div class="logo-text">Social Poster</div>
+      <div class="logo-sub">Multi-Platform</div>
+    </div>
+  </div>
+  <nav class="nav">
+    <div class="nav-item" data-page="dashboard"><span class="nav-icon">🏠</span><span>Dashboard</span></div>
+    <div class="nav-item" data-page="scheduled-posts"><span class="nav-icon">📅</span><span>Scheduled Posts</span></div>
+    <div style="height:1px;background:#e4e6eb;margin:8px 16px"></div>
+    <div class="nav-item" data-page="facebook"><span class="nav-icon">📘</span><span>Facebook</span></div>
+    <div class="nav-item ig-hover" data-page="instagram"><span class="nav-icon">📸</span><span>Instagram</span></div>
+    <div class="nav-item yt-hover" data-page="youtube"><span class="nav-icon">📽️</span><span>YouTube</span></div>
+    <div class="nav-item tk-hover active tk-active" data-page="tiktok"><span class="nav-icon">🎵</span><span>TikTok</span></div>
+    <div class="nav-item pin-hover" data-page="pinterest"><span class="nav-icon">📌</span><span>Pinterest</span></div>
+    <div style="height:1px;background:#e4e6eb;margin:8px 16px"></div>
+    <div class="nav-item" data-page="ai-settings"><span class="nav-icon">🪄</span><span>AI Settings</span></div>
+    <div class="nav-item" data-page="account-settings"><span class="nav-icon">⚙️</span><span>Account Settings</span></div>
+    <div class="nav-item" data-page="help"><span class="nav-icon">❓</span><span>Help Guide</span></div>
+    <div class="nav-item" data-page="privacy-policy"><span class="nav-icon">🛡️</span><span>Privacy Policy</span></div>
+    <div class="nav-item" data-page="terms-of-service"><span class="nav-icon">📜</span><span>Terms of Service</span></div>
+    <div style="height:1px;background:#e4e6eb;margin:8px 16px"></div>
+    <div class="nav-item" id="logout-btn" style="color: #c62828;"><span class="nav-icon">🚪</span><span>Logout</span></div>
+  </nav>
+  <div class="sidebar-footer">v4.0 · Multi-Platform Social Poster</div>
+</aside>
+
+<main class="main">
+  <section class="page active" id="page-tiktok">
+    <div class="page-header">
+      <h1>TikTok Settings</h1>
+      <p>Configure TikTok Content Posting API Credentials</p>
+    </div>
+
+    <div class="status-card">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:40px;height:40px;border-radius:10px;background:#e0f7fa;display:flex;align-items:center;justify-content:center;font-size:20px">🎵</div>
+        <div>
+          <div style="font-weight:700;font-size:15px;color:#1c1e21">TikTok Content Posting API</div>
+          <div style="font-size:12.5px;color:#65676b">Publishes video clips to your TikTok account</div>
+        </div>
+      </div>
+      <div id="tk-conn-status-badge" class="status-badge bad">
+        <span class="dot red" id="tk-conn-dot"></span>
+        <span id="tk-conn-status-text">Not configured</span>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:20px">
+      <h2 style="font-size:16px;font-weight:700;color:#1c1e21;margin-bottom:16px">TikTok Developer Credentials</h2>
+      
+      <form id="tk-settings-form">
+        <div class="field">
+          <label for="tk-client-key">Client Key / App Key</label>
+          <input type="text" id="tk-client-key" placeholder="e.g. awxxxxxxxxxxxxxx" required />
+        </div>
+
+        <div class="field">
+          <label for="tk-access-token">User Access Token</label>
+          <input type="password" id="tk-access-token" placeholder="act.xxxxxxxxxxxxxx" required />
+        </div>
+
+        <div class="alert success" id="tk-save-success"></div>
+        <div class="alert error" id="tk-save-error"></div>
+
+        <div style="display:flex;gap:10px;margin-top:20px">
+          <button type="submit" class="btn-primary" id="tk-save-btn" style="background:#000">
+            <span class="spinner" id="tk-save-spinner"></span>
+            <span id="tk-save-btn-text">Save Credentials</span>
+          </button>
+          <button type="button" class="btn-secondary" id="tk-test-btn" onclick="tkTestConnection()">
+            <span class="spinner dark" id="tk-test-spinner"></span>
+            <span id="tk-test-btn-text">Test Connection</span>
+          </button>
+        </div>
+
+        <div class="alert success" id="tk-test-success" style="margin-top:14px"></div>
+        <div class="alert error" id="tk-test-error" style="margin-top:14px"></div>
+      </form>
+    </div>
+  </section>
+</main>
+
+</div>
+
+<script src="/js/auth.js"></script>
+<script src="/js/nav.js"></script>
+<script src="/js/settings.js"></script>
+</body>
+</html>
