@@ -1124,15 +1124,18 @@ app.post("/api/ai/settings", (req, res) => {
 });
 
 // POST /api/ai/test-connection  →  test AI credentials
-app.post("/api/ai/test-connection", async (_req, res) => {
+app.post("/api/ai/test-connection", async (req, res) => {
   const cfg = loadConfig();
-  const apiKey = cfg.openaiApiKey || cfg.geminiApiKey || process.env.OPENAI_API_KEY || process.env.GEMINI_API_KEY;
+  const inputApiKey = (req.body?.openaiApiKey || req.body?.apiKey || "").trim();
+  const inputModel  = (req.body?.openaiModel  || req.body?.model  || "").trim();
+
+  const apiKey = inputApiKey || cfg.openaiApiKey || cfg.geminiApiKey || process.env.OPENAI_API_KEY || process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    return res.status(400).json({ success: false, message: "No API key configured." });
+    return res.status(400).json({ success: false, message: "No API key provided or configured. Please enter your API key." });
   }
 
-  const model = cfg.openaiModel || "gpt-4o-mini";
-  const isGemini = model.startsWith("gemini") || apiKey.startsWith("AIza");
+  const model = inputModel || cfg.openaiModel || "gpt-4o-mini";
+  const isGemini = apiKey.startsWith("AIza") || model.toLowerCase().includes("gemini") || (!apiKey.startsWith("sk-") && !model.startsWith("gpt"));
 
   if (isGemini) {
     try {
