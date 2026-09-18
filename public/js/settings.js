@@ -405,12 +405,24 @@ async function aiTestConnection() {
   if (successEl) successEl.style.display = "none";
   if (errorEl) errorEl.style.display = "none";
 
+  const apiKeyInput = document.getElementById("ai-api-key");
+  const modelSelect = document.getElementById("ai-model-select");
+
+  const apiKey = apiKeyInput ? apiKeyInput.value.trim() : "";
+  const openaiModel = modelSelect ? modelSelect.value.trim() : "";
+
   try {
-    const res  = await fetch("/api/ai/test-connection", { method: "POST" });
+    const res  = await fetch("/api/ai/test-connection", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ openaiApiKey: apiKey, openaiModel: openaiModel })
+    });
     const data = await res.json();
     if (data.success) {
       if (successEl) {
-        successEl.textContent = `✅ Connected successfully! Model used: ${data.modelUsed}. Verified access to OpenAI API.`;
+        const isGemini = (data.modelUsed && data.modelUsed.includes("gemini")) || (apiKey && apiKey.startsWith("AIza"));
+        const providerName = isGemini ? "Google Gemini API" : "OpenAI API";
+        successEl.textContent = `✅ Connected successfully! Model used: ${data.modelUsed}. Verified access to ${providerName}.`;
         successEl.style.display = "block";
       }
       const badge = document.getElementById("ai-conn-status-badge");

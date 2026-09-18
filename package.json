@@ -4,8 +4,8 @@
   "description": "Post images to a Facebook Page via Graph API",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js"
+    "start": "node init && node server.js",
+    "dev": "node init && nodemon server.js"
   },
   "dependencies": {
     "axios": "^1.6.0",
