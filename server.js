@@ -20,20 +20,24 @@ const CONFIG_FILE = isVercel
   : path.join(__dirname, "config.json");
 
 // ─── Cloudinary Helper ────────────────────────────────────────────────────────
-if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
-  cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET
-  });
-}
-
 async function uploadToCloudinary(filePath) {
-  if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+  const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+  const apiKey = process.env.CLOUDINARY_API_KEY;
+  const apiSecret = process.env.CLOUDINARY_API_SECRET;
+
+  if (!cloudName || !apiKey || !apiSecret) {
+    console.error("Cloudinary upload failed: Environment variables CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, or CLOUDINARY_API_SECRET are not set.");
     return null;
   }
   if (!filePath || !fs.existsSync(filePath)) return null;
+
   try {
+    cloudinary.config({
+      cloud_name: cloudName,
+      api_key: apiKey,
+      api_secret: apiSecret,
+      secure: true
+    });
     const res = await cloudinary.uploader.upload(filePath, { resource_type: "auto" });
     return res.secure_url;
   } catch (err) {
@@ -709,7 +713,7 @@ app.post("/api/pinterest/test-connection", async (_req, res) => {
 async function executePlatformPublish(platform, payload, filePath) {
   const cfg = loadConfig();
   const fileName = payload.fileName || path.basename(filePath || "");
-  const isVideo = /mp4|mov|avi|mkv/.test(path.extname(fileName).toLowerCase());
+  const isVideo = /mp4|mov|avi|mkv|webm|m4v|3gp|flv|wmv/i.test(path.extname(fileName).toLowerCase());
 
   if (platform === "facebook") {
     if (!cfg.pageId || !cfg.accessToken) return { success: false, message: "Facebook credentials not configured." };
@@ -754,10 +758,18 @@ async function executePlatformPublish(platform, payload, filePath) {
     const fullCaption = hashtagsField ? `${captionField}\n\n${hashtagsField}` : captionField;
 
     let imageUrl = (payload.image_url || "").trim();
-    if (!imageUrl && filePath) {
+    const isPublicHttps = imageUrl && imageUrl.startsWith("https://") && !imageUrl.includes("localhost") && !imageUrl.includes("127.0.0.1");
+
+    if (!isPublicHttps && filePath && fs.existsSync(filePath)) {
       imageUrl = (await uploadToCloudinary(filePath)) || "";
     }
-    if (!imageUrl) return { success: false, message: "Instagram API requires a public URL for media. Provide a public URL or configure Cloudinary environment variables." };
+
+    if (!imageUrl || !imageUrl.startsWith("https://") || imageUrl.includes("localhost") || imageUrl.includes("127.0.0.1")) {
+      return {
+        success: false,
+        message: "Instagram API requires a public HTTPS media URL. Cloudinary upload failed or is not configured. Please set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET in your .env file."
+      };
+    }
 
     const params = { caption: fullCaption, access_token: cfg.igAccessToken };
     if (isVideo) { params.media_type = "REELS"; params.video_url = imageUrl; }
@@ -768,18 +780,22 @@ async function executePlatformPublish(platform, payload, filePath) {
     const publishRes = await axios.post(`https://graph.facebook.com/v21.0/${cfg.igAccountId}/media_publish`, null, {
       params: { creation_id: creationId, access_token: cfg.igAccessToken }
     });
-    return { success: true, message: "Posted successfully!", post_id: publishRes.data.id };
+    return { success: true, message: "Posted to Instagram successfully!", post_id: publishRes.data.id };
   }
 
   if (platform === "youtube") {
     if (!cfg.ytAccessToken) return { success: false, message: "YouTube credentials not configured." };
-    if (!isVideo) return { success: false, message: "YouTube requires a video file." };
+    if (!isVideo) return { success: false, message: "YouTube only supports video publishing. Please select a video file." };
+
+    if (!filePath || !fs.existsSync(filePath)) {
+      return { success: false, message: "YouTube requires a valid video file." };
+    }
 
     const oauth2Client = new google.auth.OAuth2();
     oauth2Client.setCredentials({ access_token: cfg.ytAccessToken });
     const youtube = google.youtube({ version: "v3", auth: oauth2Client });
 
-    const title = payload.yt_title || "New Video";
+    const title = (payload.yt_title || "").trim() || "New Video";
     const descField = (payload.yt_description || "").trim();
     const tagsField = (payload.yt_tags || "").trim();
     const fullDesc = tagsField ? `${descField}\n\n${tagsField}` : descField;

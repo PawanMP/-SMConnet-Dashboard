@@ -190,6 +190,20 @@ async function dashPublish() {
     return;
   }
 
+  const isVideoFile = file.type.startsWith("video/") || /mp4|mov|avi|mkv|webm|m4v|3gp|flv|wmv/i.test(file.name);
+  if (!isVideoFile) {
+    if (selectedPlats.includes("youtube")) {
+      errorEl.textContent = "❌ YouTube only supports video publishing. Please select a video file or uncheck YouTube.";
+      errorEl.style.display = "block";
+      return;
+    }
+    if (selectedPlats.includes("tiktok")) {
+      errorEl.textContent = "❌ TikTok only supports video publishing. Please select a video file or uncheck TikTok.";
+      errorEl.style.display = "block";
+      return;
+    }
+  }
+
   submitBtn.disabled = true;
   if (spinner) spinner.style.display = "inline-block";
   if (btnTxt) btnTxt.textContent = "Publishing…";
@@ -355,6 +369,20 @@ async function schedulePost() {
     errorEl.textContent = "Please select and enable at least one platform to schedule for.";
     errorEl.style.display = "block";
     return;
+  }
+
+  const isVideoFile = file.type.startsWith("video/") || /mp4|mov|avi|mkv|webm|m4v|3gp|flv|wmv/i.test(file.name);
+  if (!isVideoFile) {
+    if (selectedPlats.includes("youtube")) {
+      errorEl.textContent = "❌ YouTube only supports video publishing. Please select a video file or uncheck YouTube.";
+      errorEl.style.display = "block";
+      return;
+    }
+    if (selectedPlats.includes("tiktok")) {
+      errorEl.textContent = "❌ TikTok only supports video publishing. Please select a video file or uncheck TikTok.";
+      errorEl.style.display = "block";
+      return;
+    }
   }
 
   const schedules = {};
