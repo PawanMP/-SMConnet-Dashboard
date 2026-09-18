@@ -87,15 +87,15 @@
   <section class="page active" id="page-ai-settings">
     <div class="page-header">
       <h1>AI Assistant Configuration</h1>
-      <p>Configure OpenAI API Key &amp; Model preferences for multi-platform caption generation</p>
+      <p>Configure OpenAI &amp; Google Gemini API Key &amp; Model preferences for multi-platform caption generation</p>
     </div>
 
     <div class="status-card">
       <div style="display:flex;align-items:center;gap:12px">
         <div style="width:40px;height:40px;border-radius:10px;background:#eef2ff;display:flex;align-items:center;justify-content:center;font-size:20px">🪄</div>
         <div>
-          <div style="font-weight:700;font-size:15px;color:#1c1e21">OpenAI API Assistant Engine</div>
-          <div style="font-size:12.5px;color:#65676b">Powers automatic multi-platform caption &amp; hashtag generation</div>
+          <div style="font-weight:700;font-size:15px;color:#1c1e21">AI Assistant Engine</div>
+          <div style="font-size:12.5px;color:#65676b">Powers automatic multi-platform caption &amp; hashtag generation via OpenAI or Google Gemini</div>
         </div>
       </div>
       <div id="ai-conn-status-badge" class="status-badge bad">
@@ -105,24 +105,32 @@
     </div>
 
     <div class="card" style="margin-bottom:20px">
-      <h2 style="font-size:16px;font-weight:700;color:#1c1e21;margin-bottom:16px">OpenAI Configuration</h2>
+      <h2 style="font-size:16px;font-weight:700;color:#1c1e21;margin-bottom:16px">AI Configuration (OpenAI &amp; Google Gemini)</h2>
       
       <form id="ai-settings-form">
         <div class="field">
-          <label for="ai-api-key">OpenAI API Key</label>
+          <label for="ai-api-key">API Key (OpenAI or Google Gemini)</label>
           <div class="input-eye-wrap">
-            <input type="password" id="ai-api-key" placeholder="sk-..." required />
+            <input type="password" id="ai-api-key" placeholder="sk-... or AIzaSy..." required />
             <button type="button" class="eye-btn" id="ai-eye-btn" title="Toggle visibility">👁</button>
           </div>
-          <div style="font-size:12px;color:#65676b;margin-top:4px">Your secret API Key from platform.openai.com/api-keys</div>
+          <div style="font-size:12px;color:#65676b;margin-top:4px">Your secret API Key from OpenAI Platform (sk-...) or Google AI Studio (AIzaSy...)</div>
         </div>
 
         <div class="field">
           <label for="ai-model-select">AI Model</label>
           <select id="ai-model-select" style="width:100%;padding:10px 12px;border:1px solid #ced0d4;border-radius:8px;font-size:14px;background:#fff">
-            <option value="gpt-4o-mini">gpt-4o-mini (Recommended · Fast &amp; High Quality)</option>
-            <option value="gpt-4o">gpt-4o (Most Intelligent)</option>
-            <option value="gpt-3.5-turbo">gpt-3.5-turbo (Legacy)</option>
+            <optgroup label="Google Gemini Models">
+              <option value="gemini-1.5-flash">gemini-1.5-flash (Google Gemini · Fast &amp; Multimodal)</option>
+              <option value="gemini-1.5-pro">gemini-1.5-pro (Google Gemini · High Reasoning)</option>
+              <option value="gemini-2.0-flash">gemini-2.0-flash (Google Gemini · Next Gen)</option>
+              <option value="gemini-2.0-flash-exp">gemini-2.0-flash-exp (Google Gemini · Experimental)</option>
+            </optgroup>
+            <optgroup label="OpenAI Models">
+              <option value="gpt-4o-mini" selected>gpt-4o-mini (Recommended · Fast &amp; High Quality)</option>
+              <option value="gpt-4o">gpt-4o (Most Intelligent)</option>
+              <option value="gpt-3.5-turbo">gpt-3.5-turbo (Legacy)</option>
+            </optgroup>
           </select>
         </div>
 

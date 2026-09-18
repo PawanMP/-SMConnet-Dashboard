@@ -1090,76 +1090,94 @@ const schedulerTimer = setInterval(checkScheduledPostsWorker, 15000);
 if (schedulerTimer && schedulerTimer.unref) schedulerTimer.unref();
 
 // ═══════════════════════════════════════════════════════════════════════════════
-//  OPENAI AI ASSISTANT API
+//  OPENAI & GOOGLE GEMINI AI ASSISTANT API
 // ═══════════════════════════════════════════════════════════════════════════════
 
-// GET /api/ai/settings  →  return current OpenAI settings (key masked)
+// GET /api/ai/settings  →  return current AI settings (key masked)
 app.get("/api/ai/settings", (_req, res) => {
   const cfg = loadConfig();
+  const apiKey = cfg.openaiApiKey || cfg.geminiApiKey || process.env.OPENAI_API_KEY || process.env.GEMINI_API_KEY || "";
   res.json({
-    openaiApiKey: cfg.openaiApiKey
-      ? cfg.openaiApiKey.slice(0, 8) + "••••••••" + cfg.openaiApiKey.slice(-4)
+    openaiApiKey: apiKey
+      ? apiKey.slice(0, 8) + "••••••••" + apiKey.slice(-4)
       : "",
     openaiModel: cfg.openaiModel || "gpt-4o-mini",
-    connected: !!(cfg.openaiApiKey || process.env.OPENAI_API_KEY)
+    connected: !!apiKey
   });
 });
 
-// POST /api/ai/settings  →  save OpenAI settings
+// POST /api/ai/settings  →  save AI settings
 app.post("/api/ai/settings", (req, res) => {
   const { openaiApiKey, openaiModel } = req.body;
   if (!openaiApiKey) {
-    return res.status(400).json({ success: false, message: "OpenAI API Key is required." });
+    return res.status(400).json({ success: false, message: "API Key is required." });
   }
   const cfg = loadConfig();
-  cfg.openaiApiKey = openaiApiKey.trim();
+  const trimmedKey = openaiApiKey.trim();
+  cfg.openaiApiKey = trimmedKey;
+  if (trimmedKey.startsWith("AIza")) {
+    cfg.geminiApiKey = trimmedKey;
+  }
   cfg.openaiModel = (openaiModel || "gpt-4o-mini").trim();
   saveConfig(cfg);
   res.json({ success: true, message: "AI settings saved successfully." });
 });
 
-// POST /api/ai/test-connection  →  test OpenAI credentials
+// POST /api/ai/test-connection  →  test AI credentials
 app.post("/api/ai/test-connection", async (_req, res) => {
   const cfg = loadConfig();
-  const apiKey = cfg.openaiApiKey || process.env.OPENAI_API_KEY;
+  const apiKey = cfg.openaiApiKey || cfg.geminiApiKey || process.env.OPENAI_API_KEY || process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    return res.status(400).json({ success: false, message: "No OpenAI API key configured." });
+    return res.status(400).json({ success: false, message: "No API key configured." });
   }
 
-  try {
-    // Validate by fetching models
-    const response = await axios.get("https://api.openai.com/v1/models", {
-      headers: {
-        Authorization: `Bearer ${apiKey}`
-      }
-    });
-    
-    // Check if configuration has model, verify it's standard or default
-    res.json({
-      success: true,
-      message: "OpenAI integration authenticated successfully!",
-      modelUsed: cfg.openaiModel || "gpt-4o-mini",
-      modelsCount: response.data?.data?.length || 0
-    });
-  } catch (err) {
-    const msg = err.response?.data?.error?.message || err.message;
-    res.status(400).json({ success: false, message: msg });
+  const model = cfg.openaiModel || "gpt-4o-mini";
+  const isGemini = model.startsWith("gemini") || apiKey.startsWith("AIza");
+
+  if (isGemini) {
+    try {
+      const response = await axios.get(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+      res.json({
+        success: true,
+        message: "Google Gemini API authenticated successfully!",
+        modelUsed: model,
+        modelsCount: response.data?.models?.length || 0
+      });
+    } catch (err) {
+      const msg = err.response?.data?.error?.message || err.message;
+      res.status(400).json({ success: false, message: "Google Gemini API Error: " + msg });
+    }
+  } else {
+    try {
+      const response = await axios.get("https://api.openai.com/v1/models", {
+        headers: { Authorization: `Bearer ${apiKey}` }
+      });
+      res.json({
+        success: true,
+        message: "OpenAI integration authenticated successfully!",
+        modelUsed: model,
+        modelsCount: response.data?.data?.length || 0
+      });
+    } catch (err) {
+      const msg = err.response?.data?.error?.message || err.message;
+      res.status(400).json({ success: false, message: "OpenAI API Error: " + msg });
+    }
   }
 });
 
-// POST /api/generate-content  →  generate captions using GPT
+// POST /api/generate-content  →  generate captions using GPT or Gemini
 app.post("/api/generate-content", upload.single("file"), async (req, res) => {
   const filePath = req.file?.path ?? null;
   const fileName = req.file?.originalname ?? "";
   const isVideo  = /mp4|mov|avi|mkv/.test(path.extname(fileName).toLowerCase());
 
   const cfg = loadConfig();
-  const apiKey = cfg.openaiApiKey || process.env.OPENAI_API_KEY;
+  const apiKey = cfg.openaiApiKey || cfg.geminiApiKey || process.env.OPENAI_API_KEY || process.env.GEMINI_API_KEY;
   if (!apiKey) {
     if (filePath && fs.existsSync(filePath)) fs.unlink(filePath, () => {});
     return res.status(400).json({
       success: false,
-      message: "OpenAI API Key is not configured. Please go to AI Settings and enter your key."
+      message: "AI API Key is not configured. Please go to AI Settings and enter your key."
     });
   }
 
@@ -1181,6 +1199,7 @@ app.post("/api/generate-content", upload.single("file"), async (req, res) => {
 
   try {
     const targetModel = cfg.openaiModel || "gpt-4o-mini";
+    const isGemini = targetModel.startsWith("gemini") || apiKey.startsWith("AIza");
     
     // Construct robust Social Media Prompt instructions
     const systemPrompt = `You are a professional social media manager and SEO copywriter who excels at creating viral, engaging content.
@@ -1204,50 +1223,91 @@ JSON Output structure:
   "pinterest": { "title": "Pin Title here", "description": "Useful pin description...", "hashtags": "#tag1 #tag2" }
 }`;
 
-    const messages = [
-      { role: "system", content: systemPrompt }
-    ];
+    let gptText = "";
 
-    const contentArray = [];
-    if (contextPrompt) {
-      contentArray.push({ type: "text", text: `User request/context: "${contextPrompt}"` });
-    }
-    contentArray.push({ type: "text", text: `Uploaded Media Details: File name is "${fileName}", Media type is ${isVideo ? "video" : "image"}.` });
-
-    // If it's an image, we can send it directly via Vision to get incredibly accurate descriptions
-    if (!isVideo && filePath && fs.existsSync(filePath)) {
+    if (isGemini) {
       try {
-        const imageBuffer = fs.readFileSync(filePath);
-        const base64Image = imageBuffer.toString("base64");
-        const ext = path.extname(fileName).toLowerCase().substring(1);
-        const mimeType = ext === "png" ? "image/png" : "image/jpeg";
-        
-        contentArray.push({
-          type: "image_url",
-          image_url: {
-            url: `data:${mimeType};base64,${base64Image}`
-          }
+        const messages = [{ role: "system", content: systemPrompt }];
+        const contentArray = [];
+        if (contextPrompt) {
+          contentArray.push({ type: "text", text: `User request/context: "${contextPrompt}"` });
+        }
+        contentArray.push({ type: "text", text: `Uploaded Media Details: File name is "${fileName}", Media type is ${isVideo ? "video" : "image"}.` });
+
+        if (!isVideo && filePath && fs.existsSync(filePath)) {
+          const imageBuffer = fs.readFileSync(filePath);
+          const base64Image = imageBuffer.toString("base64");
+          const ext = path.extname(fileName).toLowerCase().substring(1);
+          const mimeType = ext === "png" ? "image/png" : "image/jpeg";
+          contentArray.push({
+            type: "image_url",
+            image_url: { url: `data:${mimeType};base64,${base64Image}` }
+          });
+        }
+        messages.push({ role: "user", content: contentArray });
+
+        const geminiRes = await axios.post(
+          "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+          { model: targetModel, messages, temperature: 0.7, max_tokens: 1500 },
+          { headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` } }
+        );
+        gptText = geminiRes.data?.choices?.[0]?.message?.content || "";
+      } catch (geminiErr) {
+        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${targetModel}:generateContent?key=${apiKey}`;
+        const parts = [];
+        if (contextPrompt) parts.push({ text: `User request/context: ${contextPrompt}` });
+        parts.push({ text: `Uploaded Media Details: File name is "${fileName}", Media type is ${isVideo ? "video" : "image"}.` });
+
+        if (!isVideo && filePath && fs.existsSync(filePath)) {
+          const imageBuffer = fs.readFileSync(filePath);
+          const base64Image = imageBuffer.toString("base64");
+          const ext = path.extname(fileName).toLowerCase().substring(1);
+          const mimeType = ext === "png" ? "image/png" : "image/jpeg";
+          parts.push({ inline_data: { mime_type: mimeType, data: base64Image } });
+        }
+
+        const nativeRes = await axios.post(geminiUrl, {
+          system_instruction: { parts: [{ text: systemPrompt }] },
+          contents: [{ role: "user", parts }]
         });
-      } catch (err) {
-        console.error("Failed to base64 encode cover image: ", err);
+        gptText = nativeRes.data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
       }
+    } else {
+      const messages = [{ role: "system", content: systemPrompt }];
+      const contentArray = [];
+      if (contextPrompt) {
+        contentArray.push({ type: "text", text: `User request/context: "${contextPrompt}"` });
+      }
+      contentArray.push({ type: "text", text: `Uploaded Media Details: File name is "${fileName}", Media type is ${isVideo ? "video" : "image"}.` });
+
+      if (!isVideo && filePath && fs.existsSync(filePath)) {
+        try {
+          const imageBuffer = fs.readFileSync(filePath);
+          const base64Image = imageBuffer.toString("base64");
+          const ext = path.extname(fileName).toLowerCase().substring(1);
+          const mimeType = ext === "png" ? "image/png" : "image/jpeg";
+          contentArray.push({
+            type: "image_url",
+            image_url: { url: `data:${mimeType};base64,${base64Image}` }
+          });
+        } catch (err) {}
+      }
+
+      messages.push({ role: "user", content: contentArray });
+
+      const openAiResponse = await axios.post("https://api.openai.com/v1/chat/completions", {
+        model: targetModel,
+        messages: messages,
+        temperature: 0.7,
+        max_tokens: 1500
+      }, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`
+        }
+      });
+      gptText = openAiResponse.data?.choices?.[0]?.message?.content || "";
     }
-
-    messages.push({ role: "user", content: contentArray });
-
-    const openAiResponse = await axios.post("https://api.openai.com/v1/chat/completions", {
-      model: targetModel,
-      messages: messages,
-      temperature: 0.7,
-      max_tokens: 1500
-    }, {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`
-      }
-    });
-
-    let gptText = openAiResponse.data?.choices?.[0]?.message?.content || "";
     
     // Clear potential code blocks Markdown wrapper
     gptText = gptText.trim();
