@@ -784,11 +784,16 @@ async function executePlatformPublish(platform, payload, filePath) {
   }
 
   if (platform === "youtube") {
-    if (!cfg.ytAccessToken) return { success: false, message: "YouTube credentials not configured." };
+    if (!cfg.ytAccessToken) return { success: false, message: "YouTube credentials not configured. Please add your YouTube Access Token in the YouTube settings page." };
     if (!isVideo) return { success: false, message: "YouTube only supports video publishing. Please select a video file." };
 
     if (!filePath || !fs.existsSync(filePath)) {
       return { success: false, message: "YouTube requires a valid video file." };
+    }
+
+    // Check if the saved token looks like an OAuth authorization code (starts with '4/') rather than a bearer access token
+    if (cfg.ytAccessToken.startsWith("4/")) {
+      return { success: false, message: "YouTube: The saved token appears to be an OAuth authorization code, not an access token. Please complete the OAuth flow on the YouTube settings page to obtain a valid bearer access token." };
     }
 
     const oauth2Client = new google.auth.OAuth2();
@@ -800,16 +805,24 @@ async function executePlatformPublish(platform, payload, filePath) {
     const tagsField = (payload.yt_tags || "").trim();
     const fullDesc = tagsField ? `${descField}\n\n${tagsField}` : descField;
 
-    const response = await youtube.videos.insert({
-      part: "snippet,status",
-      requestBody: { snippet: { title, description: fullDesc }, status: { privacyStatus: "public" } },
-      media: { body: fs.createReadStream(filePath) }
-    });
-    return { success: true, message: "Uploaded to YouTube successfully!", post_id: response.data.id };
+    try {
+      const response = await youtube.videos.insert({
+        part: "snippet,status",
+        requestBody: { snippet: { title, description: fullDesc }, status: { privacyStatus: "public" } },
+        media: { body: fs.createReadStream(filePath) }
+      });
+      return { success: true, message: "Uploaded to YouTube successfully!", post_id: response.data.id };
+    } catch (ytErr) {
+      const ytMsg = ytErr.response?.data?.error?.message || ytErr.message || "Unknown YouTube error";
+      if (ytMsg.includes("invalid_grant") || ytMsg.includes("Token has been expired") || ytErr.code === "ECONNRESET") {
+        return { success: false, message: `YouTube access token is expired or invalid. Please reconnect your YouTube account in the YouTube settings page and generate a fresh access token. (Details: ${ytMsg})` };
+      }
+      throw ytErr;
+    }
   }
 
   if (platform === "tiktok") {
-    if (!cfg.tkAccessToken) return { success: false, message: "TikTok credentials not configured." };
+    if (!cfg.tkAccessToken) return { success: false, message: "TikTok credentials not configured. Please go to the TikTok settings page and add your Client Key and Access Token." };
     if (!isVideo) return { success: false, message: "TikTok requires a video file." };
 
     const tkCaption = (payload.tk_caption || "").trim();
@@ -838,8 +851,8 @@ async function executePlatformPublish(platform, payload, filePath) {
   }
 
   if (platform === "pinterest") {
-    if (!cfg.pinAccessToken) return { success: false, message: "Pinterest credentials not configured." };
-    if (!cfg.pinBoardId) return { success: false, message: "Pinterest requires a Board ID." };
+    if (!cfg.pinAccessToken) return { success: false, message: "Pinterest credentials not configured. Please go to the Pinterest settings page and add your App ID and Access Token." };
+    if (!cfg.pinBoardId) return { success: false, message: "Pinterest requires a Board ID. Please add your Board ID in the Pinterest settings page." };
 
     const pinTitle = (payload.pin_title || "Pin from Social Dashboard").trim();
     const pinDesc = (payload.pin_description || "").trim();

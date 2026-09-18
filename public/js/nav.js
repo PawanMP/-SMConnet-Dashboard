@@ -2,9 +2,13 @@
 function goTo(pageId) {
   let targetFile = pageId === "dashboard" ? "index.html" : pageId + ".html";
   const currentPath = window.location.pathname;
-  if (!currentPath.endsWith("/" + targetFile) && !currentPath.endsWith(targetFile)) {
-    window.location.href = targetFile;
-  }
+  const alreadyHere =
+    currentPath.endsWith("/" + targetFile) ||
+    currentPath.endsWith(targetFile) ||
+    (pageId === "dashboard" && (currentPath.endsWith("/") || currentPath === "/" || currentPath.endsWith("/index.html")));
+
+  if (alreadyHere) return; // avoid full page refresh when already on the page
+  window.location.href = targetFile;
 }
 
 function updateActiveSidebar() {
