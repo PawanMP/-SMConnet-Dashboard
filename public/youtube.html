@@ -138,6 +138,25 @@
         </div>
       </form>
     </div>
+
+    <!-- Step-by-Step Setup Guide -->
+    <div class="card" style="margin-bottom:30px">
+      <h2 style="font-size:16px;font-weight:700;color:#1c1e21;margin-bottom:14px;display:flex;align-items:center;gap:8px">
+        <span>📖</span> Integration Guide: YouTube (Google Data API v3)
+      </h2>
+      <div style="font-size:13.5px;color:#4b5563;line-height:1.6">
+        <p style="margin-bottom:12px"><strong>Step A (Enable API):</strong><br>
+        Go to the <a href="https://console.cloud.google.com/" target="_blank" style="color:#1877f2;font-weight:600">Google Cloud Console</a> and create a new project. Navigate to <strong>APIs &amp; Services &gt; Library</strong>, search for <strong>YouTube Data API v3</strong>, and click <strong>Enable</strong>.</p>
+
+        <p style="margin-bottom:12px"><strong>Step B (Create Credentials):</strong><br>
+        Go to <strong>Credentials &gt; Create Credentials &gt; OAuth client ID</strong> (configure the OAuth Consent Screen if prompted). Select <strong>Web application</strong> as the application type and add your deployment URL under authorized redirect URIs.</p>
+
+        <p style="margin-bottom:12px"><strong>Step C (Generate Token):</strong><br>
+        Use the <a href="https://developers.google.com/oauthplayground/" target="_blank" style="color:#1877f2;font-weight:600">Google OAuth 2.0 Playground</a>. Check the box to use your own OAuth Client ID and paste your created Client ID and Client Secret. Select the YouTube Data API v3 scope (<code>https://www.googleapis.com/auth/youtube.upload</code>), click <strong>Authorize APIs</strong>, sign in, and click <strong>Exchange authorization code for tokens</strong> to copy your Access Token.</p>
+
+        <p><strong>Step D (Link to System):</strong> Paste your YouTube Channel ID (found in your YouTube advanced settings) and the Access Token into the fields above.</p>
+      </div>
+    </div>
   </section>
 </main>
 

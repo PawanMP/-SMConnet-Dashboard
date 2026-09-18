@@ -136,6 +136,23 @@
         <div class="alert error" id="tk-test-error" style="margin-top:14px"></div>
       </form>
     </div>
+
+    <!-- Step-by-Step Setup Guide -->
+    <div class="card" style="margin-bottom:30px">
+      <h2 style="font-size:16px;font-weight:700;color:#1c1e21;margin-bottom:14px;display:flex;align-items:center;gap:8px">
+        <span>📖</span> Integration Guide: TikTok (Client Key, Secret, &amp; OAuth)
+      </h2>
+      <div style="font-size:13.5px;color:#4b5563;line-height:1.6">
+        <p style="margin-bottom:12px"><strong>Step A (Create an App):</strong><br>
+        Go to the <a href="https://developers.tiktok.com/" target="_blank" style="color:#1877f2;font-weight:600">TikTok Developer Portal</a> and create an account. Click <strong>Manage Apps &gt; Create App</strong>, select <strong>Web</strong> as the platform, and apply for the Video Publishing permission (<code>video.upload</code>).</p>
+
+        <p style="margin-bottom:12px"><strong>Step B (Get Credentials):</strong> Once approved, copy your assigned <strong>Client Key</strong> and <strong>Client Secret</strong> from your app panel.</p>
+
+        <p style="margin-bottom:12px"><strong>Step C (Generate Token):</strong> Authenticate your TikTok account through your app's OAuth2 authorization flow to generate a valid User Access Token.</p>
+
+        <p><strong>Step D (Link to System):</strong> Paste your Client Key and Access Token into the fields above.</p>
+      </div>
+    </div>
   </section>
 </main>
 

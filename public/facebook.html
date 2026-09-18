@@ -141,6 +141,26 @@
         <div class="alert error" id="test-error" style="margin-top:14px"></div>
       </form>
     </div>
+
+    <!-- Step-by-Step Setup Guide -->
+    <div class="card" style="margin-bottom:30px">
+      <h2 style="font-size:16px;font-weight:700;color:#1c1e21;margin-bottom:14px;display:flex;align-items:center;gap:8px">
+        <span>📖</span> Integration Guide: Facebook (Page ID &amp; Access Token)
+      </h2>
+      <div style="font-size:13.5px;color:#4b5563;line-height:1.6">
+        <p style="margin-bottom:12px"><strong>Step A (Get your Page ID):</strong><br>
+        Go to Facebook, switch into your specific Facebook Page profile, and click on your Page's name to view your main timeline. Look at the browser URL at the top; the long string of numbers (e.g., <code>1019610687906644</code>) is your <strong>Facebook Page ID</strong>. <em>(Alternatively, find it under your Page's <strong>About &gt; Overview</strong> or <strong>Page transparency</strong> section).</em></p>
+        
+        <p style="margin-bottom:6px"><strong>Step B (Get your Page Access Token):</strong></p>
+        <ol style="padding-left:20px;margin:0;line-height:1.7">
+          <li>Go to the official <a href="https://developers.facebook.com/tools/explorer/" target="_blank" style="color:#1877f2;font-weight:600">Meta Graph API Explorer</a>.</li>
+          <li>In the top-right corner, select your created developer app under the <strong>Meta App</strong> dropdown.</li>
+          <li>Under the <strong>User or Token</strong> dropdown, select <strong>Get Page Access Token</strong> and choose your specific Facebook Page.</li>
+          <li>Under the <strong>Permissions</strong> dropdown, add and select: <code>pages_manage_posts</code> and <code>pages_read_engagement</code>.</li>
+          <li>Click <strong>Generate Access Token</strong>, copy the generated long token string (starting with <code>EAA...</code>), and paste it into the field above.</li>
+        </ol>
+      </div>
+    </div>
   </section>
 </main>
 

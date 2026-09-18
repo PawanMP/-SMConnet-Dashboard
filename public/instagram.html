@@ -141,6 +141,26 @@
         <div class="alert error" id="ig-test-error" style="margin-top:14px"></div>
       </form>
     </div>
+
+    <!-- Step-by-Step Setup Guide -->
+    <div class="card" style="margin-bottom:30px">
+      <h2 style="font-size:16px;font-weight:700;color:#1c1e21;margin-bottom:14px;display:flex;align-items:center;gap:8px">
+        <span>📖</span> Integration Guide: Instagram (Business Account ID &amp; Access Token)
+      </h2>
+      <div style="font-size:13.5px;color:#4b5563;line-height:1.6">
+        <p style="margin-bottom:12px"><strong>Step A (Prerequisite):</strong> Ensure your Instagram account is switched to a <strong>Business or Creator Account</strong> and is linked directly to your Facebook Page.</p>
+        
+        <p style="margin-bottom:6px"><strong>Step B (Get your Instagram Account ID):</strong></p>
+        <ol style="padding-left:20px;margin:0 0 12px 0;line-height:1.7">
+          <li>Go back to the <a href="https://developers.facebook.com/tools/explorer/" target="_blank" style="color:#1877f2;font-weight:600">Meta Graph API Explorer</a>.</li>
+          <li>Ensure you have added the <code>instagram_basic</code> and <code>instagram_content_publish</code> permissions.</li>
+          <li>In the query bar at the top, type <code>GET /v21.0/me?fields=instagram_business_account</code> and click <strong>Submit</strong>.</li>
+          <li>Copy the ID returned under <code>instagram_business_account</code>.</li>
+        </ol>
+
+        <p><strong>Step C (Link to System):</strong> Paste your Instagram Account ID and the exact same Facebook Page Access Token into the fields above.</p>
+      </div>
+    </div>
   </section>
 </main>
 

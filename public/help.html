@@ -106,6 +106,98 @@
         When scheduling posts, you can set individual date-time pickers per platform or use the Bulk Schedule Picker to set a unified publishing time across all accounts. View and manage queued posts under the <strong>Scheduled Posts</strong> page.
       </p>
     </div>
+
+    <!-- Complete User-Facing Setup Guide -->
+    <div class="card" style="margin-bottom:30px">
+      <h2 style="font-size:18px;font-weight:700;color:#1c1e21;margin-bottom:16px;display:flex;align-items:center;gap:8px">
+        <span>📖</span> Integration Guide: Connecting Your Accounts &amp; AI
+      </h2>
+      
+      <!-- 1. Facebook -->
+      <div style="margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid #e4e6eb">
+        <h3 style="font-size:15px;font-weight:700;color:#1877f2;margin-bottom:10px">1. Facebook (Page ID &amp; Access Token)</h3>
+        <div style="font-size:13.5px;color:#4b5563;line-height:1.6">
+          <p style="margin-bottom:10px"><strong>Step A (Get your Page ID):</strong><br>
+          Go to Facebook, switch into your specific Facebook Page profile, and click on your Page's name to view your main timeline. Look at the browser URL at the top; the long string of numbers (e.g., <code>1019610687906644</code>) is your <strong>Facebook Page ID</strong>. <em>(Alternatively, find it under your Page's <strong>About &gt; Overview</strong> or <strong>Page transparency</strong> section).</em></p>
+          <p style="margin-bottom:6px"><strong>Step B (Get your Page Access Token):</strong></p>
+          <ol style="padding-left:20px;margin:0;line-height:1.7">
+            <li>Go to the official <a href="https://developers.facebook.com/tools/explorer/" target="_blank" style="color:#1877f2;font-weight:600">Meta Graph API Explorer</a>.</li>
+            <li>In the top-right corner, select your created developer app under the <strong>Meta App</strong> dropdown.</li>
+            <li>Under the <strong>User or Token</strong> dropdown, select <strong>Get Page Access Token</strong> and choose your specific Facebook Page.</li>
+            <li>Under the <strong>Permissions</strong> dropdown, add and select: <code>pages_manage_posts</code> and <code>pages_read_engagement</code>.</li>
+            <li>Click <strong>Generate Access Token</strong>, copy the generated long token string (starting with <code>EAA...</code>), and paste it into your dashboard.</li>
+          </ol>
+        </div>
+      </div>
+
+      <!-- 2. Instagram -->
+      <div style="margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid #e4e6eb">
+        <h3 style="font-size:15px;font-weight:700;color:#e1306c;margin-bottom:10px">2. Instagram (Business Account ID &amp; Access Token)</h3>
+        <div style="font-size:13.5px;color:#4b5563;line-height:1.6">
+          <p style="margin-bottom:10px"><strong>Step A (Prerequisite):</strong> Ensure your Instagram account is switched to a <strong>Business or Creator Account</strong> and is linked directly to your Facebook Page.</p>
+          <p style="margin-bottom:6px"><strong>Step B (Get your Instagram Account ID):</strong></p>
+          <ol style="padding-left:20px;margin:0 0 10px 0;line-height:1.7">
+            <li>Go back to the <a href="https://developers.facebook.com/tools/explorer/" target="_blank" style="color:#1877f2;font-weight:600">Meta Graph API Explorer</a>.</li>
+            <li>Ensure you have added the <code>instagram_basic</code> and <code>instagram_content_publish</code> permissions.</li>
+            <li>In the query bar at the top, type <code>GET /v21.0/me?fields=instagram_business_account</code> and click <strong>Submit</strong>.</li>
+            <li>Copy the ID returned under <code>instagram_business_account</code>.</li>
+          </ol>
+          <p><strong>Step C (Link to System):</strong> Paste your Instagram Account ID and the exact same Facebook Page Access Token into your dashboard's Instagram Settings.</p>
+        </div>
+      </div>
+
+      <!-- 3. YouTube -->
+      <div style="margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid #e4e6eb">
+        <h3 style="font-size:15px;font-weight:700;color:#ff0000;margin-bottom:10px">3. YouTube (Google Data API v3)</h3>
+        <div style="font-size:13.5px;color:#4b5563;line-height:1.6">
+          <p style="margin-bottom:10px"><strong>Step A (Enable API):</strong><br>
+          Go to the <a href="https://console.cloud.google.com/" target="_blank" style="color:#1877f2;font-weight:600">Google Cloud Console</a> and create a new project. Navigate to <strong>APIs &amp; Services &gt; Library</strong>, search for <strong>YouTube Data API v3</strong>, and click <strong>Enable</strong>.</p>
+          <p style="margin-bottom:10px"><strong>Step B (Create Credentials):</strong><br>
+          Go to <strong>Credentials &gt; Create Credentials &gt; OAuth client ID</strong> (configure the OAuth Consent Screen if prompted). Select <strong>Web application</strong> as the application type and add your deployment URL under authorized redirect URIs.</p>
+          <p style="margin-bottom:10px"><strong>Step C (Generate Token):</strong><br>
+          Use the <a href="https://developers.google.com/oauthplayground/" target="_blank" style="color:#1877f2;font-weight:600">Google OAuth 2.0 Playground</a>. Check the box to use your own OAuth Client ID and paste your created Client ID and Client Secret. Select the YouTube Data API v3 scope (<code>https://www.googleapis.com/auth/youtube.upload</code>), click <strong>Authorize APIs</strong>, sign in, and click <strong>Exchange authorization code for tokens</strong> to copy your Access Token.</p>
+          <p><strong>Step D (Link to System):</strong> Paste your YouTube Channel ID (found in your YouTube advanced settings) and the Access Token into your dashboard's YouTube Settings.</p>
+        </div>
+      </div>
+
+      <!-- 4. TikTok -->
+      <div style="margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid #e4e6eb">
+        <h3 style="font-size:15px;font-weight:700;color:#000;margin-bottom:10px">4. TikTok (Client Key, Secret, &amp; OAuth)</h3>
+        <div style="font-size:13.5px;color:#4b5563;line-height:1.6">
+          <p style="margin-bottom:10px"><strong>Step A (Create an App):</strong><br>
+          Go to the <a href="https://developers.tiktok.com/" target="_blank" style="color:#1877f2;font-weight:600">TikTok Developer Portal</a> and create an account. Click <strong>Manage Apps &gt; Create App</strong>, select <strong>Web</strong> as the platform, and apply for the Video Publishing permission (<code>video.upload</code>).</p>
+          <p style="margin-bottom:10px"><strong>Step B (Get Credentials):</strong> Once approved, copy your assigned <strong>Client Key</strong> and <strong>Client Secret</strong> from your app panel.</p>
+          <p style="margin-bottom:10px"><strong>Step C (Generate Token):</strong> Authenticate your TikTok account through your app's OAuth2 authorization flow to generate a valid User Access Token.</p>
+          <p><strong>Step D (Link to System):</strong> Paste your Client Key and Access Token into your dashboard's TikTok Settings page.</p>
+        </div>
+      </div>
+
+      <!-- 5. Pinterest -->
+      <div style="margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid #e4e6eb">
+        <h3 style="font-size:15px;font-weight:700;color:#e60023;margin-bottom:10px">5. Pinterest (App ID, Board ID, &amp; v5 API Token)</h3>
+        <div style="font-size:13.5px;color:#4b5563;line-height:1.6">
+          <p style="margin-bottom:10px"><strong>Step A (Create an App):</strong><br>
+          Go to the <a href="https://developers.pinterest.com/" target="_blank" style="color:#1877f2;font-weight:600">Pinterest Developers Portal</a> and create an app to get your <strong>App ID</strong>.</p>
+          <p style="margin-bottom:10px"><strong>Step B (Get your Board ID):</strong><br>
+          Open the Pinterest Board where you want to post. You can find your Board ID number by typing <code>https://api.pinterest.com/v3/boards/{your-username}/{board-name}/</code> into your browser.</p>
+          <p style="margin-bottom:10px"><strong>Step C (Generate Token):</strong> Use the OAuth process in the Pinterest Developer portal to authorize <code>boards:read</code>, <code>boards:write</code>, <code>pins:read</code>, and <code>pins:write</code> permissions to output your Access Token.</p>
+          <p><strong>Step D (Link to System):</strong> Paste your App ID, Board ID, and Access Token into your dashboard's Pinterest Settings.</p>
+        </div>
+      </div>
+
+      <!-- 6. OpenAI / Gemini AI -->
+      <div>
+        <h3 style="font-size:15px;font-weight:700;color:#4364f7;margin-bottom:10px">6. OpenAI / Gemini AI (API Key &amp; Model Configuration)</h3>
+        <div style="font-size:13.5px;color:#4b5563;line-height:1.6">
+          <p style="margin-bottom:10px"><strong>Step A (Create an Account):</strong> Go to the official <a href="https://platform.openai.com/" target="_blank" style="color:#1877f2;font-weight:600">OpenAI Platform website</a> and sign in or create a new account.</p>
+          <p style="margin-bottom:10px"><strong>Step B (Navigate to API Keys):</strong> Click on your profile icon or go directly to the <a href="https://platform.openai.com/api-keys" target="_blank" style="color:#1877f2;font-weight:600">OpenAI API Keys page</a>.</p>
+          <p style="margin-bottom:10px"><strong>Step C (Generate Key):</strong> Click <strong>+ Create new secret key</strong>, name it (e.g., <em>"Social Dashboard"</em>), and click <strong>Create secret key</strong>.</p>
+          <p style="margin-bottom:10px"><strong>Step D (Copy and Save):</strong> Copy the secret key immediately (it starts with <code>sk-...</code>), as it will not be shown again.</p>
+          <p><strong>Step E (Link to System):</strong> Paste your key into the OpenAI API Key input field on your dashboard, select your preferred model (such as <code>gpt-4o-mini</code>), and click <strong>Save Configuration</strong>.</p>
+        </div>
+      </div>
+
+    </div>
   </section>
 </main>
 

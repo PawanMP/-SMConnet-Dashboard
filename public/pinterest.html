@@ -141,6 +141,24 @@
         <div class="alert error" id="pin-test-error" style="margin-top:14px"></div>
       </form>
     </div>
+
+    <!-- Step-by-Step Setup Guide -->
+    <div class="card" style="margin-bottom:30px">
+      <h2 style="font-size:16px;font-weight:700;color:#1c1e21;margin-bottom:14px;display:flex;align-items:center;gap:8px">
+        <span>📖</span> Integration Guide: Pinterest (App ID, Board ID, &amp; v5 API Token)
+      </h2>
+      <div style="font-size:13.5px;color:#4b5563;line-height:1.6">
+        <p style="margin-bottom:12px"><strong>Step A (Create an App):</strong><br>
+        Go to the <a href="https://developers.pinterest.com/" target="_blank" style="color:#1877f2;font-weight:600">Pinterest Developers Portal</a> and create an app to get your <strong>App ID</strong>.</p>
+
+        <p style="margin-bottom:12px"><strong>Step B (Get your Board ID):</strong><br>
+        Open the Pinterest Board where you want to post. You can find your Board ID number by typing <code>https://api.pinterest.com/v3/boards/{your-username}/{board-name}/</code> into your browser.</p>
+
+        <p style="margin-bottom:12px"><strong>Step C (Generate Token):</strong> Use the OAuth process in the Pinterest Developer portal to authorize <code>boards:read</code>, <code>boards:write</code>, <code>pins:read</code>, and <code>pins:write</code> permissions to output your Access Token.</p>
+
+        <p><strong>Step D (Link to System):</strong> Paste your App ID, Board ID, and Access Token into the fields above.</p>
+      </div>
+    </div>
   </section>
 </main>
 
