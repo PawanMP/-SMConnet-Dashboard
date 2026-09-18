@@ -216,6 +216,23 @@ const upload = multer({
 //  FACEBOOK API
 // ═══════════════════════════════════════════════════════════════════════════════
 
+// ─── Facebook Access Token Helper ────────────────────────────────────────────
+
+async function getFacebookPageAccessToken(pageId, token) {
+  if (!pageId || !token) return token;
+  try {
+    const { data } = await axios.get(
+      `https://graph.facebook.com/v21.0/${pageId}?fields=access_token&access_token=${token}`
+    );
+    if (data && data.access_token) {
+      return data.access_token;
+    }
+  } catch (e) {
+    // If token is already a Page Access Token or fields query fails, fallback gracefully to token
+  }
+  return token;
+}
+
 // ─── Facebook Settings API ───────────────────────────────────────────────────
 
 // GET /api/settings  →  return current Facebook config (token masked)
@@ -250,7 +267,8 @@ app.post("/api/test-connection", async (_req, res) => {
     return res.status(400).json({ success: false, message: "No credentials saved yet." });
   }
   try {
-    const url = `https://graph.facebook.com/${cfg.pageId}?fields=id,name,fan_count,picture&access_token=${cfg.accessToken}`;
+    const pageAccessToken = await getFacebookPageAccessToken(cfg.pageId, cfg.accessToken);
+    const url = `https://graph.facebook.com/v21.0/${cfg.pageId}?fields=id,name,fan_count,picture&access_token=${pageAccessToken}`;
     const { data } = await axios.get(url);
     res.json({
       success:    true,
@@ -282,9 +300,11 @@ app.post("/post-to-facebook", upload.single("image"), async (req, res) => {
       return res.status(400).json({ success: false, message: "Facebook credentials not configured. Go to Settings first." });
     }
 
+    const pageAccessToken = await getFacebookPageAccessToken(cfg.pageId, cfg.accessToken);
+
     const caption = (req.body.caption || "").trim();
     const form = new FormData();
-    form.append("access_token", cfg.accessToken);
+    form.append("access_token", pageAccessToken);
 
     if (isVideo) {
       // Post to /videos
@@ -292,7 +312,7 @@ app.post("/post-to-facebook", upload.single("image"), async (req, res) => {
       form.append("description", caption);
       
       const { data } = await axios.post(
-        `https://graph.facebook.com/${cfg.pageId}/videos`,
+        `https://graph.facebook.com/v21.0/${cfg.pageId}/videos`,
         form,
         { headers: form.getHeaders(), maxContentLength: Infinity, maxBodyLength: Infinity }
       );
@@ -308,7 +328,7 @@ app.post("/post-to-facebook", upload.single("image"), async (req, res) => {
       form.append("caption", caption);
 
       const { data } = await axios.post(
-        `https://graph.facebook.com/${cfg.pageId}/photos`,
+        `https://graph.facebook.com/v21.0/${cfg.pageId}/photos`,
         form,
         { headers: form.getHeaders() }
       );
@@ -697,25 +717,33 @@ async function executePlatformPublish(platform, payload, filePath) {
     const hashtagsField = (payload.fb_hashtags || "").trim();
     const fullCaption = hashtagsField ? `${captionField}\n\n${hashtagsField}` : captionField;
 
+    const pageAccessToken = await getFacebookPageAccessToken(cfg.pageId, cfg.accessToken);
+
     const form = new FormData();
-    form.append("access_token", cfg.accessToken);
+    form.append("access_token", pageAccessToken);
 
     if (isVideo) {
       form.append("source", fs.createReadStream(filePath));
       form.append("description", fullCaption);
       const { data } = await axios.post(
-        `https://graph.facebook.com/${cfg.pageId}/videos`, form,
+        `https://graph.facebook.com/v21.0/${cfg.pageId}/videos`, form,
         { headers: form.getHeaders(), maxContentLength: Infinity, maxBodyLength: Infinity }
       );
       return { success: true, message: "Video posted successfully!", post_id: data.id };
-    } else {
+    } else if (filePath && fs.existsSync(filePath)) {
       form.append("source", fs.createReadStream(filePath));
       form.append("caption", fullCaption);
       const { data } = await axios.post(
-        `https://graph.facebook.com/${cfg.pageId}/photos`, form,
+        `https://graph.facebook.com/v21.0/${cfg.pageId}/photos`, form,
         { headers: form.getHeaders() }
       );
       return { success: true, message: "Photo posted successfully!", post_id: data.post_id || data.id };
+    } else {
+      const { data } = await axios.post(
+        `https://graph.facebook.com/v21.0/${cfg.pageId}/feed`,
+        { message: fullCaption, access_token: pageAccessToken }
+      );
+      return { success: true, message: "Post published to Facebook Page feed!", post_id: data.id };
     }
   }
 

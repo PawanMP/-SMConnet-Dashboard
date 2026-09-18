@@ -1,15 +1,17 @@
 {
-  "pageId": "1019610687906644",
-  "accessToken": "1587368399010895",
-  "igAccountId": "",
-  "igAccessToken": "",
-  "ytChannelId": "",
-  "ytAccessToken": "",
+  "pageId": "1338827909310402",
+  "accessToken": "EAAPjcD2lB1MBSjSRJFR2Ql73uSvPUflivZCBxDRZBrEZAxziU7OfceYHqudAEkg1qARfgBRlm43GvknGIugb4WX7eZC2ZBfkCaaWRjUVYyUU6NMZCoYjSBY6xus12pGh0HqYPS0aO2FsPhvD0QVKueNfYfbJXJ3aZBhBuqf4ea3bDIN1do1as7LMtBmiIvlgN3p3D5TsVmaTLwZC0xycUFNpKTRBBs98jNYXtWFuiZC2lBY48LCJKXKYCavNf7rRduJZBO976N844TCuzni3XQ8wG1sI9A",
+  "igAccountId": "1338827909310402",
+  "igAccessToken": "EAAPjcD2lB1MBSlOiBFpjq6eDmxixNsZABhEwrimpcplNrLsPoGsrGynFHzeqo611ki3UVOmWNESbMJZCBZCAcbZCqhl1vwCamh0p2D7gJ9tDCKtvJX2jW2KHGB5TCnczp0hzOXdahAojZAC0be0Oa6I1KTXiVEZAgNekSwjAVm0wcfNkjIp6frHJZBsvTFxvANjPYdyCoLzbLku8HZBhQLdbvfVCYkbFlZCfcWgeb7SFY9HdNZC4f0kPEC2ypfoKF9YvdE2saDUZAyrZCQaUcmo4XGe98tAPrwZDZD",
+  "ytChannelId": "163781221495-kg028q010aldfj0pn7duujh18g4prlj6.apps.googleusercontent.com",
+  "ytAccessToken": "4/0ATsMZqDsXyTmAqMUj-mfWpBWcDYaErnbAIUhxx1fFXTQXvOmje8XtzxyDPzBxssn16eanw",
   "openaiApiKey": "sk-proj-mockkey1234567890abcdef",
   "openaiModel": "gpt-4o-mini",
   "tkClientKey": "",
   "tkAccessToken": "",
   "pinAppId": "",
   "pinAccessToken": "",
-  "pinBoardId": ""
+  "pinBoardId": "",
+  "adminUsername": "admin",
+  "adminPassword": "admin123"
 }
