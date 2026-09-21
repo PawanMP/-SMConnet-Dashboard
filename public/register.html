@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Create account - Social Poster</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/css/app.css" />
+  <script type="module" src="/js/pages/auth.js"></script>
+</head>
+<body data-auth="register">
+  <div class="auth-page">
+    <section class="auth-side" aria-hidden="true">
+      <a class="brand" href="/"><span class="brand-mark">S</span><span><div class="brand-name">Social Poster</div><div class="brand-sub">Multi-platform publishing</div></span></a>
+      <div>
+        <h2>One workspace for every channel you publish to.</h2>
+        <p>Each account keeps its own connected channels, drafts, schedule and analytics.</p>
+        <ul class="auth-points" id="auth-points"></ul>
+      </div>
+    </section>
+
+    <main class="auth-main">
+      <div class="auth-card">
+        <h1 id="heading">Create your account</h1>
+        <p class="lead" id="lead">Enter your details to get started.</p>
+        <div id="notice"></div>
+
+        <form id="auth-form" novalidate>
+          <div class="field">
+            <label class="label" for="name">Full name</label>
+            <input class="input" type="text" id="name" name="name" autocomplete="name" maxlength="100" required />
+          </div>
+          <div class="field">
+            <label class="label" for="email">Email</label>
+            <input class="input" type="email" id="email" name="email" autocomplete="email" required />
+          </div>
+          <div class="field">
+            <label class="label" for="password">Password</label>
+            <div class="input-wrap">
+              <input class="input" type="password" id="password" name="password" autocomplete="new-password" minlength="8" required />
+              <button type="button" class="btn btn-ghost btn-reveal" data-reveal="password" aria-label="Show"></button>
+            </div>
+            <span class="hint">At least 8 characters. Choose anything you will remember.</span>
+          </div>
+          <div class="field">
+            <label class="label" for="confirm">Confirm password</label>
+            <input class="input" type="password" id="confirm" name="confirm" autocomplete="new-password" required />
+          </div>
+          <div id="form-error"></div>
+          <button type="submit" class="btn btn-primary btn-lg btn-block" id="submit-btn">Create account</button>
+        </form>
+
+        <p class="auth-foot">Already have an account? <a href="/login.html">Sign in</a></p>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

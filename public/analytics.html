@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Analytics - Social Poster</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/css/app.css" />
+  <script type="module" src="/js/pages/analytics.js"></script>
+</head>
+<body>
+  <div class="app-loading" id="app-loading"><span class="spinner"></span>Loading...</div>
+  <main id="page" hidden>
+    <div class="page-head">
+      <div>
+        <h1>Analytics</h1>
+        <p>Publishing results and engagement, where each platform's API provides it.</p>
+      </div>
+      <div class="actions"><button type="button" class="btn btn-secondary" id="refresh-metrics" data-icon="refresh">Refresh engagement data</button></div>
+    </div>
+
+    <div class="filters" role="group" aria-label="Date range">
+      <div class="field">
+        <span class="label">Date range</span>
+        <div class="chips" id="presets">
+          <button type="button" class="chip" data-days="7" aria-pressed="false">Last 7 days</button>
+          <button type="button" class="chip" data-days="30" aria-pressed="true">Last 30 days</button>
+          <button type="button" class="chip" data-days="90" aria-pressed="false">Last 90 days</button>
+        </div>
+      </div>
+      <div class="field"><label class="label" for="from">From</label><input class="input" type="date" id="from" /></div>
+      <div class="field"><label class="label" for="to">To</label><input class="input" type="date" id="to" /></div>
+    </div>
+
+    <div id="analytics-root">
+      <section class="stats" id="stats" aria-label="Key figures"></section>
+
+      <section class="card chart-card mb-20" aria-labelledby="timeline-h">
+        <div class="card-head">
+          <div class="grow"><h2 id="timeline-h">Publishing outcomes by day</h2><div class="sub">Per day, UTC.</div></div>
+          <div class="legend"><span><i class="published"></i>Published</span><span><i class="failed"></i>Failed</span></div>
+          <button type="button" class="btn btn-ghost btn-sm" data-toggle-table="timeline" data-icon="table">Table</button>
+        </div>
+        <div class="chart" id="timeline"></div>
+      </section>
+
+      <section class="card chart-card mb-20" aria-labelledby="platforms-h">
+        <div class="card-head">
+          <div class="grow"><h2 id="platforms-h">Results by platform</h2><div class="sub">In the selected range.</div></div>
+          <div class="legend"><span><i class="published"></i>Published</span><span><i class="failed"></i>Failed</span></div>
+          <button type="button" class="btn btn-ghost btn-sm" data-toggle-table="platforms" data-icon="table">Table</button>
+        </div>
+        <div class="chart" id="platforms"></div>
+      </section>
+
+      <div class="grid-2">
+        <section class="card" aria-labelledby="engagement-h">
+          <div class="card-head"><div class="grow"><h2 id="engagement-h">Engagement by platform</h2><div class="sub">Latest figures for posts published in this range.</div></div></div>
+          <div id="engagement"></div>
+        </section>
+        <section class="card" aria-labelledby="top-h">
+          <div class="card-head"><div class="grow"><h2 id="top-h">Top posts</h2><div class="sub">By likes, comments and shares.</div></div></div>
+          <div id="top"></div>
+        </section>
+      </div>
+    </div>
+  </main>
+</body>
+</html>

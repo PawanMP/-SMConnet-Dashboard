@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Drafts - Social Poster</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/css/app.css" />
+  <script type="module" src="/js/pages/drafts.js"></script>
+</head>
+<body>
+  <div class="app-loading" id="app-loading"><span class="spinner"></span>Loading...</div>
+  <main id="page" hidden>
+    <div class="page-head">
+      <div>
+        <h1>Drafts</h1>
+      </div>
+      <div class="actions"><a class="btn btn-primary" href="/create.html?mode=draft" data-icon="plus">New draft</a></div>
+    </div>
+    <div class="filters">
+      <div class="field grow">
+        <label class="label" for="q">Search drafts</label>
+        <div class="input-icon"><span data-icon="search"></span><input class="input" id="q" type="search" placeholder="Search by title or text" /></div>
+      </div>
+    </div>
+    <div id="drafts"></div>
+    <div class="card mt-16" id="pager-card" hidden><div id="pager"></div></div>
+  </main>
+</body>
+</html>

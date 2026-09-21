@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Activity log - Social Poster</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/css/app.css" />
+  <script type="module" src="/js/pages/activity.js"></script>
+</head>
+<body>
+  <div class="app-loading" id="app-loading"><span class="spinner"></span>Loading...</div>
+  <main id="page" hidden>
+    <div class="page-head">
+      <div>
+        <h1>Activity log</h1>
+      </div>
+    </div>
+    <div class="filters">
+      <div class="field">
+        <label class="label" for="category">Category</label>
+        <select class="select" id="category">
+          <option value="">All activity</option>
+          <option value="auth">Sign-ins and security</option>
+          <option value="account">Social account connections</option>
+          <option value="post">Posts and publishing</option>
+          <option value="schedule">Scheduling</option>
+          <option value="settings">Settings changes</option>
+          <option value="media">Media uploads</option>
+          <option value="ai">AI generation</option>
+        </select>
+      </div>
+    </div>
+    <section class="card">
+      <div id="list"></div>
+      <div id="pager"></div>
+    </section>
+  </main>
+</body>
+</html>

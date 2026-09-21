@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sign in - Social Poster</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/css/app.css" />
+  <script type="module" src="/js/pages/auth.js"></script>
+</head>
+<body data-auth="login">
+  <div class="auth-page">
+    <section class="auth-side" aria-hidden="true">
+      <a class="brand" href="/"><span class="brand-mark">S</span><span><div class="brand-name">Social Poster</div><div class="brand-sub">Multi-platform publishing</div></span></a>
+      <div>
+        <h2>Plan and publish your photos and videos</h2>
+        <p>Connect Facebook, Instagram, YouTube, TikTok and Pinterest, write with AI help, schedule ahead and see what worked.</p>
+        <ul class="auth-points" id="auth-points"></ul>
+      </div>
+    </section>
+
+    <main class="auth-main">
+      <div class="auth-card">
+        <h1>Sign in</h1>
+        <p class="lead">Welcome back. Enter your details to continue.</p>
+        <div id="notice"></div>
+
+        <form id="auth-form" novalidate>
+          <div class="field">
+            <label class="label" for="email">Email</label>
+            <input class="input" type="email" id="email" name="email" autocomplete="email" required />
+          </div>
+          <div class="field">
+            <label class="label" for="password">Password</label>
+            <div class="input-wrap">
+              <input class="input" type="password" id="password" name="password" autocomplete="current-password" required />
+              <button type="button" class="btn btn-ghost btn-reveal" data-reveal="password" aria-label="Show"></button>
+            </div>
+          </div>
+          <div id="form-error"></div>
+          <button type="submit" class="btn btn-primary btn-lg btn-block" id="submit-btn">Sign in</button>
+        </form>
+
+        <p class="auth-foot" id="alt-link" hidden>New here? <a href="/register.html">Create an account</a></p>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

@@ -2,111 +2,47 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Social Poster — Privacy Policy</title>
-  <link rel="stylesheet" href="/styles.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Privacy policy - Social Poster</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/css/app.css" />
+  <script type="module" src="/js/pages/static.js"></script>
 </head>
-<body>
+<body data-page="privacy" data-title="Privacy policy">
+  <div class="app-loading" id="app-loading"><span class="spinner"></span>Loading...</div>
+  <main id="page" hidden>
+    <div class="page-head"><div><h1>Privacy policy</h1><p>How Social Poster handles your account, your connected social accounts and your content.</p></div></div>
+    <article class="card"><div class="card-body prose">
+      <h2>1. What we store</h2>
+      <ul>
+        <li><strong>Your account</strong>: name, email address, a one-way hash of your password (never the password itself), your role and preferences.</li>
+        <li><strong>Connected social accounts</strong>: the account or Page name, public profile image, and the access and refresh tokens the platform issues. Tokens are encrypted with AES-256-GCM before they are stored.</li>
+        <li><strong>Your content</strong>: posts, drafts, schedules, uploaded media and the results of publishing (platform post IDs, errors, timestamps).</li>
+        <li><strong>Engagement figures</strong>: views, likes, comments and similar numbers the platforms return for your posts.</li>
+        <li><strong>Activity log</strong>: sign-ins, connections, publishing and settings changes, with the IP address used, for security.</li>
+      </ul>
 
-<!-- Login Screen -->
-<div id="login-container">
-  <div class="login-card">
-    <div class="login-logo">
-      <div class="logo-icon">S</div>
-      <h2>Welcome Back</h2>
-      <p>Sign in to access your Multi-Platform Social Poster</p>
-    </div>
+      <h2>2. How we use it</h2>
+      <p>Only to provide the service: to sign you in, publish and schedule the content you create to the accounts you connected, and show you results. We do not sell your data or use it for advertising.</p>
 
-    <form id="login-form">
-      <div class="login-field">
-        <label for="login-username">Username</label>
-        <input type="text" id="login-username" placeholder="Enter username" required />
-      </div>
+      <h2>3. Social platform data</h2>
+      <p>We request only the permissions needed to publish and read basic account and post information. Tokens are used on the server only and are never sent to your browser. Disconnecting an account deletes its stored tokens. You can also remove this app's access from each platform's own security settings at any time.</p>
 
-      <div class="login-field">
-        <label for="login-password">Password</label>
-        <input type="password" id="login-password" placeholder="Enter password" required />
-      </div>
+      <h2>4. AI features</h2>
+      <p>When you use the AI assistant, the text you provide (and, if you choose, a preview image of your media) is sent to the AI provider configured (OpenAI or Google) to generate suggestions.</p>
 
-      <div class="login-error-alert" id="login-error"></div>
+      <h2>5. Cookies</h2>
+      <p>We use one essential, httpOnly session cookie to keep you signed in. It cannot be read by scripts on the page. We do not use tracking or advertising cookies.</p>
 
-      <button type="submit" class="login-btn" id="login-btn-submit">
-        <span class="spinner" id="login-spinner"></span>
-        <span>Sign In</span>
-      </button>
-    </form>
+      <h2>6. Retention and deletion</h2>
+      <p>Your data is kept while your account exists. Deleting your account (Profile and security) permanently removes your posts, schedules, media records, connected accounts and notifications. Uploaded files that no post uses are deleted automatically after a day. Posts already published remain on the social platforms; delete them there if needed.</p>
 
-    <div class="login-credentials-box">
-      <h4>Default Test Credentials</h4>
-      <div class="login-credentials-grid">
-        <div class="login-cred-badge" onclick="fillCredentials('admin')">
-          <span class="login-cred-label">Username</span>
-          <span class="login-cred-value">admin</span>
-        </div>
-        <div class="login-cred-badge" onclick="fillCredentials('admin123')">
-          <span class="login-cred-label">Password</span>
-          <span class="login-cred-value">admin123</span>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
+      <h2>7. Security</h2>
+      <p>Passwords are hashed with scrypt, sessions use signed tokens in secure cookies, connections use HTTPS, and requests are rate limited. Administrators can see account and activity information needed to operate the service.</p>
 
-<div id="app-container" style="display: none; width: 100%; min-height: 100vh;">
-
-<aside class="sidebar">
-  <div class="sidebar-logo" onclick="goTo('dashboard')" style="cursor: pointer;" title="Back to Dashboard">
-    <div class="logo-icon" style="background:linear-gradient(135deg,#1877f2,#C13584)">S</div>
-    <div>
-      <div class="logo-text">Social Poster</div>
-      <div class="logo-sub">Multi-Platform</div>
-    </div>
-  </div>
-  <nav class="nav">
-    <div class="nav-item" data-page="dashboard"><span class="nav-icon">🏠</span><span>Dashboard</span></div>
-    <div class="nav-item" data-page="scheduled-posts"><span class="nav-icon">📅</span><span>Scheduled Posts</span></div>
-    <div style="height:1px;background:#e4e6eb;margin:8px 16px"></div>
-    <div class="nav-item" data-page="facebook"><span class="nav-icon">📘</span><span>Facebook</span></div>
-    <div class="nav-item ig-hover" data-page="instagram"><span class="nav-icon">📸</span><span>Instagram</span></div>
-    <div class="nav-item yt-hover" data-page="youtube"><span class="nav-icon">📽️</span><span>YouTube</span></div>
-    <div class="nav-item tk-hover" data-page="tiktok"><span class="nav-icon">🎵</span><span>TikTok</span></div>
-    <div class="nav-item pin-hover" data-page="pinterest"><span class="nav-icon">📌</span><span>Pinterest</span></div>
-    <div style="height:1px;background:#e4e6eb;margin:8px 16px"></div>
-    <div class="nav-item" data-page="ai-settings"><span class="nav-icon">🪄</span><span>AI Settings</span></div>
-    <div class="nav-item" data-page="account-settings"><span class="nav-icon">⚙️</span><span>Account Settings</span></div>
-    <div class="nav-item" data-page="help"><span class="nav-icon">❓</span><span>Help Guide</span></div>
-    <div class="nav-item active" data-page="privacy-policy"><span class="nav-icon">🛡️</span><span>Privacy Policy</span></div>
-    <div class="nav-item" data-page="terms-of-service"><span class="nav-icon">📜</span><span>Terms of Service</span></div>
-    <div style="height:1px;background:#e4e6eb;margin:8px 16px"></div>
-    <div class="nav-item" id="logout-btn" style="color: #c62828;"><span class="nav-icon">🚪</span><span>Logout</span></div>
-  </nav>
-  <div class="sidebar-footer">v4.0 · Multi-Platform Social Poster</div>
-</aside>
-
-<main class="main">
-  <section class="page active" id="page-privacy-policy">
-    <div class="page-header">
-      <h1>Privacy Policy</h1>
-      <p>How Social Poster handles your account credentials and media data</p>
-    </div>
-
-    <div class="card" style="margin-bottom:20px">
-      <h2 style="font-size:16px;font-weight:700;color:#1c1e21;margin-bottom:12px">1. Data Storage &amp; Security</h2>
-      <p style="font-size:13.5px;color:#65676b;line-height:1.6">
-        All API access tokens, channel credentials, and passwords are stored securely in local configuration files or server environment variables. Your credentials are used exclusively to authorize posting requests to connected social platforms.
-      </p>
-
-      <h2 style="font-size:16px;font-weight:700;color:#1c1e21;margin:20px 0 12px 0">2. Session Authentication</h2>
-      <p style="font-size:13.5px;color:#65676b;line-height:1.6">
-        Login authentication token sessions are kept in browser <code>sessionStorage</code>. Closing the browser window automatically logs you out to preserve account security.
-      </p>
-    </div>
-  </section>
-</main>
-
-</div>
-
-<script src="/js/auth.js"></script>
-<script src="/js/nav.js"></script>
+      <h2>8. Contact</h2>
+      <p>For privacy questions or data deletion requests, contact the administrator of this Social Poster installation.</p>
+    </div></article>
+  </main>
 </body>
 </html>

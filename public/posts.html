@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Post history - Social Poster</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/css/app.css" />
+  <script type="module" src="/js/pages/posts.js"></script>
+</head>
+<body>
+  <div class="app-loading" id="app-loading"><span class="spinner"></span>Loading...</div>
+  <main id="page" hidden>
+    <div class="page-head">
+      <div>
+        <h1>Post history</h1>
+      </div>
+      <div class="actions"><a class="btn btn-primary" href="/create.html" data-icon="plus">Create post</a></div>
+    </div>
+
+    <form class="filters" id="filters" role="search">
+      <div class="field grow">
+        <label class="label" for="q">Search</label>
+        <div class="input-icon"><span data-icon="search"></span><input class="input" id="q" name="q" type="search" placeholder="Search titles, captions and hashtags" /></div>
+      </div>
+      <div class="field">
+        <label class="label" for="status">Status</label>
+        <select class="select" id="status" name="status">
+          <option value="">All statuses</option>
+          <option value="published">Published</option>
+          <option value="partial">Partly published</option>
+          <option value="failed">Failed</option>
+          <option value="failed,partial">Needs attention</option>
+          <option value="scheduled">Scheduled</option>
+          <option value="draft">Draft</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="label" for="platform">Platform</label>
+        <select class="select" id="platform" name="platform">
+          <option value="">All platforms</option>
+          <option value="facebook">Facebook</option>
+          <option value="instagram">Instagram</option>
+          <option value="youtube">YouTube</option>
+          <option value="tiktok">TikTok</option>
+          <option value="pinterest">Pinterest</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="label" for="from">From</label>
+        <input class="input" type="date" id="from" name="from" />
+      </div>
+      <div class="field">
+        <label class="label" for="to">To</label>
+        <input class="input" type="date" id="to" name="to" />
+      </div>
+      <button type="button" class="btn btn-secondary" id="clear-filters" data-icon="x">Clear</button>
+    </form>
+
+    <section class="card">
+      <div id="results"></div>
+      <div id="pager"></div>
+    </section>
+  </main>
+</body>
+</html>

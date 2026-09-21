@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Notifications - Social Poster</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/css/app.css" />
+  <script type="module" src="/js/pages/notifications.js"></script>
+</head>
+<body>
+  <div class="app-loading" id="app-loading"><span class="spinner"></span>Loading...</div>
+  <main id="page" hidden>
+    <div class="page-head">
+      <div>
+        <h1>Notifications</h1>
+      </div>
+      <div class="actions">
+        <button type="button" class="btn btn-secondary" id="mark-all" data-icon="check">Mark all as read</button>
+      </div>
+    </div>
+    <div class="chips mb-16" role="group" aria-label="Filter">
+      <button type="button" class="chip" data-filter="all" aria-pressed="true">All</button>
+      <button type="button" class="chip" data-filter="unread" aria-pressed="false">Unread</button>
+    </div>
+    <section class="card">
+      <div id="list"></div>
+      <div id="pager"></div>
+    </section>
+  </main>
+</body>
+</html>

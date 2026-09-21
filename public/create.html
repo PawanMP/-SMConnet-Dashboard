@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Create post - Social Poster</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/css/app.css" />
+  <script type="module" src="/js/pages/create.js"></script>
+</head>
+<body>
+  <div class="app-loading" id="app-loading"><span class="spinner"></span>Loading...</div>
+  <main id="page" hidden>
+    <div class="page-head">
+      <div>
+        <h1 id="page-title">Create post</h1>
+        <p id="page-sub"></p>
+      </div>
+      <div class="actions" id="head-actions"></div>
+    </div>
+    <div id="edit-notice"></div>
+
+    <div class="split">
+      <div class="stack">
+        <!-- 1. Media -->
+        <section class="card" aria-labelledby="media-h">
+          <div class="card-head">
+            <span class="step-num">1</span>
+            <div class="grow"><h2 id="media-h">Media</h2><div class="sub">A photo or video. Instagram, YouTube, TikTok and Pinterest need one.</div></div>
+          </div>
+          <div class="card-body" id="media-area"></div>
+        </section>
+
+        <!-- 2. Platforms -->
+        <section class="card" aria-labelledby="platforms-h">
+          <div class="card-head">
+            <span class="step-num">2</span>
+            <div class="grow"><h2 id="platforms-h">Platforms</h2></div>
+            <a class="btn btn-ghost btn-sm" href="/accounts.html" data-icon="link">Manage accounts</a>
+          </div>
+          <div class="card-body"><div class="platform-picker" id="platforms" role="group" aria-label="Platforms"></div></div>
+        </section>
+
+        <!-- 3. Content -->
+        <section class="card" aria-labelledby="content-h">
+          <div class="card-head">
+            <span class="step-num">3</span>
+            <div class="grow"><h2 id="content-h">Content</h2><div class="sub">Shared text is used everywhere unless you customise a platform.</div></div>
+          </div>
+          <div class="card-body">
+            <div class="ai-panel mb-20" id="ai-panel">
+              <div class="label mb-8" data-icon="sparkles">AI assistant</div>
+              <div id="ai-body">
+                <div class="grid-2">
+                  <div class="field">
+                    <label class="label" for="ai-context">What is this post about?</label>
+                    <input class="input" id="ai-context" maxlength="1000" placeholder="e.g. Weekend sale on summer drinks, 20% off until Sunday" />
+                  </div>
+                  <div class="field">
+                    <label class="label" for="ai-tone">Tone</label>
+                    <select class="select" id="ai-tone"></select>
+                  </div>
+                </div>
+                <div class="row mt-12">
+                  <button type="button" class="btn btn-primary" id="ai-generate" data-icon="sparkles">Generate for selected platforms</button>
+                  <span class="small muted" id="ai-note"></span>
+                </div>
+              </div>
+            </div>
+
+            <div class="tabs" role="tablist" id="tabs"></div>
+            <div id="tab-panels" class="mt-16"></div>
+          </div>
+        </section>
+
+        <!-- 4. Publishing -->
+        <section class="card" aria-labelledby="publish-h">
+          <div class="card-head">
+            <span class="step-num">4</span>
+            <div class="grow"><h2 id="publish-h">Publishing</h2></div>
+          </div>
+          <div class="card-body">
+            <div class="mode-cards" role="radiogroup" aria-label="Publishing option">
+              <div class="mode-card">
+                <input type="radio" name="mode" id="mode-publish" value="publish" checked />
+                <label for="mode-publish"><span class="mode-icon" data-icon="send"></span><span><div class="mode-title">Publish now</div><div class="mode-desc">Post to every selected platform immediately.</div></span></label>
+              </div>
+              <div class="mode-card">
+                <input type="radio" name="mode" id="mode-schedule" value="schedule" />
+                <label for="mode-schedule"><span class="mode-icon" data-icon="clock"></span><span><div class="mode-title">Schedule</div><div class="mode-desc">Publish automatically at a set time.</div></span></label>
+              </div>
+              <div class="mode-card">
+                <input type="radio" name="mode" id="mode-draft" value="draft" />
+                <label for="mode-draft"><span class="mode-icon" data-icon="drafts"></span><span><div class="mode-title">Save as draft</div><div class="mode-desc">Keep it and finish later.</div></span></label>
+              </div>
+            </div>
+
+            <div id="schedule-box" class="mt-16" hidden>
+              <div class="grid-2">
+                <div class="field">
+                  <label class="label" for="schedule-at">Publish date and time</label>
+                  <input class="input" type="datetime-local" id="schedule-at" />
+                  <span class="hint" id="tz-hint"></span>
+                </div>
+                <div class="field" style="justify-content:flex-end">
+                  <label class="check"><input type="checkbox" id="per-platform" /><span>Use a different time for each platform</span></label>
+                </div>
+              </div>
+              <div id="per-platform-times" class="grid-2 mt-12" hidden></div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Summary / actions -->
+      <aside class="sticky-side stack">
+        <section class="card" aria-labelledby="ready-h">
+          <div class="card-head"><h2 id="ready-h">Review</h2></div>
+          <div class="card-body">
+            <ul class="checklist" id="checklist"></ul>
+            <div id="submit-error" class="mt-16"></div>
+            <div class="stack-sm mt-16">
+              <button type="button" class="btn btn-primary btn-lg btn-block" id="submit-btn">Publish</button>
+              <button type="button" class="btn btn-secondary btn-block" id="draft-btn" data-icon="save">Save as draft</button>
+              <p class="small muted" id="submit-hint"></p>
+            </div>
+          </div>
+        </section>
+        <section class="card" id="result-card" hidden aria-live="polite">
+          <div class="card-head"><h2 id="result-title">Results</h2></div>
+          <div class="card-body" id="result-body"></div>
+        </section>
+      </aside>
+    </div>
+  </main>
+</body>
+</html>

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin panel - Social Poster</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/css/app.css" />
+  <script type="module" src="/js/pages/admin.js"></script>
+</head>
+<body>
+  <div class="app-loading" id="app-loading"><span class="spinner"></span>Loading...</div>
+  <main id="page" hidden>
+    <div class="page-head">
+      <div>
+        <h1>Admin panel</h1>
+      </div>
+    </div>
+
+    <div class="tabs mb-20" role="tablist">
+      <button type="button" class="tab" role="tab" data-tab="overview" aria-selected="true">Overview</button>
+      <button type="button" class="tab" role="tab" data-tab="users" aria-selected="false">Users</button>
+      <button type="button" class="tab" role="tab" data-tab="activity" aria-selected="false">System activity</button>
+    </div>
+
+    <div data-panel="overview">
+      <section class="stats" id="sys-stats"></section>
+      <div class="grid-2">
+        <section class="card">
+          <div class="card-head"><h2>Scheduler</h2></div>
+          <div class="card-body">
+            <dl class="kv" id="scheduler"></dl>
+            <div class="form-actions"><button type="button" class="btn btn-primary" id="run-scheduler" data-icon="play">Run scheduler now</button></div>
+          </div>
+        </section>
+        <section class="card">
+          <div class="card-head"><h2>Maintenance</h2></div>
+          <div class="card-body">
+            <p class="muted">Deletes uploaded files that no post has used for more than a day. This runs automatically every 6 hours.</p>
+            <div class="form-actions"><button type="button" class="btn btn-secondary" id="media-cleanup" data-icon="trash">Remove unused media now</button></div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <div data-panel="users" hidden>
+      <div class="filters">
+        <div class="field grow"><label class="label" for="user-q">Search users</label><div class="input-icon"><span data-icon="search"></span><input class="input" id="user-q" type="search" placeholder="Name or email" /></div></div>
+        <div class="field"><label class="label" for="user-role">Role</label><select class="select" id="user-role"><option value="">All roles</option><option value="admin">Admins</option><option value="user">Users</option></select></div>
+        <button type="button" class="btn btn-primary" id="add-user" data-icon="plus">Add user</button>
+      </div>
+      <section class="card"><div id="users"></div><div id="users-pager"></div></section>
+    </div>
+
+    <div data-panel="activity" hidden>
+      <section class="card"><div id="sys-activity"></div><div id="activity-pager"></div></section>
+    </div>
+  </main>
+</body>
+</html>

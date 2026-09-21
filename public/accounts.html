@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Connected accounts - Social Poster</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/css/app.css" />
+  <script type="module" src="/js/pages/accounts.js"></script>
+</head>
+<body>
+  <div class="app-loading" id="app-loading"><span class="spinner"></span>Loading...</div>
+  <main id="page" hidden>
+    <div class="page-head">
+      <div>
+        <h1>Connected accounts</h1>
+        <p>Connect the accounts you publish to.</p>
+      </div>
+      <div class="actions"><button type="button" class="btn btn-secondary" id="refresh-all" data-icon="refresh">Check all connections</button></div>
+    </div>
+    <div id="banner"></div>
+    <div class="grid-2" id="accounts"></div>
+  </main>
+</body>
+</html>

@@ -1,7 +1,12 @@
 node_modules/
 .env
 .env.local
+.env.*.local
+# Local data: SQLite database and generated development secrets
+data/
+uploads/
+# Legacy single-user credentials file (no longer used; never commit)
 config.json
 scheduled_posts.json
-uploads/
 .vercel/
+*.log

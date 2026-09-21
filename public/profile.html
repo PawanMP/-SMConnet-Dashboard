@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Profile and security - Social Poster</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/css/app.css" />
+  <script type="module" src="/js/pages/profile.js"></script>
+</head>
+<body>
+  <div class="app-loading" id="app-loading"><span class="spinner"></span>Loading...</div>
+  <main id="page" hidden>
+    <div class="page-head">
+      <div>
+        <h1>Profile and security</h1>
+      </div>
+    </div>
+
+    <div class="grid-2 mb-20">
+      <section class="card">
+        <div class="card-head"><h2>Profile</h2></div>
+        <form class="card-body" id="profile-form" novalidate>
+          <div class="row mb-16"><span class="avatar" id="avatar" style="width:48px;height:48px;font-size:16px"></span><div><div class="list-title" id="summary-name"></div><div class="small muted" id="summary-meta"></div></div></div>
+          <div class="field"><label class="label" for="name">Full name</label><input class="input" id="name" maxlength="100" autocomplete="name" required /></div>
+          <div class="field"><label class="label" for="email">Email</label><input class="input" type="email" id="email" autocomplete="email" required /></div>
+          <div class="field">
+            <label class="label" for="timezone">Time zone</label>
+            <select class="select" id="timezone"></select>
+            <span class="hint">Schedules always use your device's time; this is kept for your reference.</span>
+          </div>
+          <div id="profile-msg"></div>
+          <div class="form-actions"><button type="submit" class="btn btn-primary" id="profile-save" data-icon="save">Save profile</button></div>
+        </form>
+      </section>
+
+      <section class="card">
+        <div class="card-head"><h2>Change password</h2></div>
+        <form class="card-body" id="password-form" novalidate>
+          <div class="field">
+            <label class="label" for="current">Current password</label>
+            <div class="input-wrap"><input class="input" type="password" id="current" autocomplete="current-password" required /><button type="button" class="btn btn-ghost btn-reveal" data-reveal="current" aria-label="Show"></button></div>
+          </div>
+          <div class="field">
+            <label class="label" for="new">New password</label>
+            <div class="input-wrap"><input class="input" type="password" id="new" autocomplete="new-password" required /><button type="button" class="btn btn-ghost btn-reveal" data-reveal="new" aria-label="Show"></button></div>
+            <span class="hint">At least 8 characters.</span>
+          </div>
+          <div class="field"><label class="label" for="confirm">Confirm new password</label><input class="input" type="password" id="confirm" autocomplete="new-password" required /></div>
+          <div id="password-msg"></div>
+          <div class="form-actions"><button type="submit" class="btn btn-primary" id="password-save" data-icon="key">Change password</button></div>
+          <p class="small muted mt-12">Changing your password signs you out on every other device.</p>
+        </form>
+      </section>
+    </div>
+
+    <div class="grid-2">
+      <section class="card">
+        <div class="card-head"><h2>Notifications</h2></div>
+        <div class="card-body">
+          <div class="field"><label class="check"><input type="checkbox" id="notify-success" /><span>Notify me when a post publishes successfully</span></label></div>
+          <div class="field"><label class="check"><input type="checkbox" id="notify-failure" /><span>Notify me when publishing fails</span></label></div>
+          <p class="small muted">Connection problems (expired tokens) are always reported.</p>
+          <div class="form-actions"><button type="button" class="btn btn-secondary" id="notify-save" data-icon="save">Save preferences</button></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-head"><h2>Sessions and account</h2></div>
+        <div class="card-body stack">
+          <div>
+            <h3>Sign out everywhere</h3>
+            <p class="small muted mt-8 mb-12">Ends every session, including this one. Use it if you signed in on a shared computer.</p>
+            <button type="button" class="btn btn-secondary" id="logout-all" data-icon="logout">Sign out of all devices</button>
+          </div>
+          <hr class="divider" style="margin:0" />
+          <div>
+            <h3 style="color:var(--danger-text)">Delete account</h3>
+            <p class="small muted mt-8 mb-12">Permanently deletes your posts, drafts, schedules, media records and connected accounts.</p>
+            <button type="button" class="btn btn-danger-outline" id="delete-account" data-icon="trash">Delete my account</button>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+</body>
+</html>

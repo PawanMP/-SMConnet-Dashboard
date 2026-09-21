@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Calendar - Social Poster</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/css/app.css" />
+  <script type="module" src="/js/pages/calendar.js"></script>
+</head>
+<body>
+  <div class="app-loading" id="app-loading"><span class="spinner"></span>Loading...</div>
+  <main id="page" hidden>
+    <div class="page-head">
+      <div>
+        <h1>Calendar</h1>
+      </div>
+      <div class="actions"><a class="btn btn-primary" href="/create.html?mode=schedule" data-icon="plus">Schedule a post</a></div>
+    </div>
+
+    <section class="card mb-20">
+      <div class="card-body">
+        <div class="cal-toolbar">
+          <button type="button" class="btn btn-secondary btn-icon" id="prev" aria-label="Previous" data-icon="chevronLeft"></button>
+          <button type="button" class="btn btn-secondary" id="today">Today</button>
+          <button type="button" class="btn btn-secondary btn-icon" id="next" aria-label="Next" data-icon="chevronRight"></button>
+          <div class="cal-title" id="cal-title" aria-live="polite"></div>
+          <span style="flex:1"></span>
+          <div class="btn-group" role="group" aria-label="Calendar view">
+            <button type="button" id="view-month" aria-pressed="true">Month</button>
+            <button type="button" id="view-week" aria-pressed="false">Week</button>
+          </div>
+        </div>
+        <div class="legend mb-12" aria-label="Legend">
+          <span><i style="background:var(--primary)"></i>Scheduled</span>
+          <span><i style="background:var(--success)"></i>Published</span>
+          <span><i style="background:var(--warning)"></i>Partly published</span>
+          <span><i style="background:var(--danger)"></i>Failed</span>
+        </div>
+        <div id="calendar"></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-head"><h2>Upcoming scheduled posts</h2><span class="small muted" id="upcoming-count"></span></div>
+      <div id="upcoming"></div>
+    </section>
+  </main>
+</body>
+</html>

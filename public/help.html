@@ -2,208 +2,95 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Social Poster — Help Guide</title>
-  <link rel="stylesheet" href="/styles.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Help guide - Social Poster</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/css/app.css" />
+  <script type="module" src="/js/pages/static.js"></script>
 </head>
-<body>
-
-<!-- Login Screen -->
-<div id="login-container">
-  <div class="login-card">
-    <div class="login-logo">
-      <div class="logo-icon">S</div>
-      <h2>Welcome Back</h2>
-      <p>Sign in to access your Multi-Platform Social Poster</p>
-    </div>
-
-    <form id="login-form">
-      <div class="login-field">
-        <label for="login-username">Username</label>
-        <input type="text" id="login-username" placeholder="Enter username" required />
-      </div>
-
-      <div class="login-field">
-        <label for="login-password">Password</label>
-        <input type="password" id="login-password" placeholder="Enter password" required />
-      </div>
-
-      <div class="login-error-alert" id="login-error"></div>
-
-      <button type="submit" class="login-btn" id="login-btn-submit">
-        <span class="spinner" id="login-spinner"></span>
-        <span>Sign In</span>
-      </button>
-    </form>
-
-    <div class="login-credentials-box">
-      <h4>Default Test Credentials</h4>
-      <div class="login-credentials-grid">
-        <div class="login-cred-badge" onclick="fillCredentials('admin')">
-          <span class="login-cred-label">Username</span>
-          <span class="login-cred-value">admin</span>
-        </div>
-        <div class="login-cred-badge" onclick="fillCredentials('admin123')">
-          <span class="login-cred-label">Password</span>
-          <span class="login-cred-value">admin123</span>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div id="app-container" style="display: none; width: 100%; min-height: 100vh;">
-
-<aside class="sidebar">
-  <div class="sidebar-logo" onclick="goTo('dashboard')" style="cursor: pointer;" title="Back to Dashboard">
-    <div class="logo-icon" style="background:linear-gradient(135deg,#1877f2,#C13584)">S</div>
-    <div>
-      <div class="logo-text">Social Poster</div>
-      <div class="logo-sub">Multi-Platform</div>
-    </div>
-  </div>
-  <nav class="nav">
-    <div class="nav-item" data-page="dashboard"><span class="nav-icon">🏠</span><span>Dashboard</span></div>
-    <div class="nav-item" data-page="scheduled-posts"><span class="nav-icon">📅</span><span>Scheduled Posts</span></div>
-    <div style="height:1px;background:#e4e6eb;margin:8px 16px"></div>
-    <div class="nav-item" data-page="facebook"><span class="nav-icon">📘</span><span>Facebook</span></div>
-    <div class="nav-item ig-hover" data-page="instagram"><span class="nav-icon">📸</span><span>Instagram</span></div>
-    <div class="nav-item yt-hover" data-page="youtube"><span class="nav-icon">📽️</span><span>YouTube</span></div>
-    <div class="nav-item tk-hover" data-page="tiktok"><span class="nav-icon">🎵</span><span>TikTok</span></div>
-    <div class="nav-item pin-hover" data-page="pinterest"><span class="nav-icon">📌</span><span>Pinterest</span></div>
-    <div style="height:1px;background:#e4e6eb;margin:8px 16px"></div>
-    <div class="nav-item" data-page="ai-settings"><span class="nav-icon">🪄</span><span>AI Settings</span></div>
-    <div class="nav-item" data-page="account-settings"><span class="nav-icon">⚙️</span><span>Account Settings</span></div>
-    <div class="nav-item active" data-page="help"><span class="nav-icon">❓</span><span>Help Guide</span></div>
-    <div class="nav-item" data-page="privacy-policy"><span class="nav-icon">🛡️</span><span>Privacy Policy</span></div>
-    <div class="nav-item" data-page="terms-of-service"><span class="nav-icon">📜</span><span>Terms of Service</span></div>
-    <div style="height:1px;background:#e4e6eb;margin:8px 16px"></div>
-    <div class="nav-item" id="logout-btn" style="color: #c62828;"><span class="nav-icon">🚪</span><span>Logout</span></div>
-  </nav>
-  <div class="sidebar-footer">v4.0 · Multi-Platform Social Poster</div>
-</aside>
-
-<main class="main">
-  <section class="page active" id="page-help">
-    <div class="page-header">
-      <h1>Setup &amp; Publishing Help Guide</h1>
-      <p>Step-by-step instructions to get API keys, schedule content, and publish</p>
-    </div>
-
-    <div class="card" style="margin-bottom:20px">
-      <h2 style="font-size:16px;font-weight:700;color:#1c1e21;margin-bottom:12px">🚀 Quick Start Checklist</h2>
-      <ol style="padding-left:20px;font-size:14px;color:#1c1e21;line-height:1.7">
-        <li>Navigate to individual platform settings (Facebook, Instagram, YouTube, TikTok, Pinterest) in the sidebar.</li>
-        <li>Enter your API Access Tokens, Page IDs, or Channel IDs for each channel you wish to use.</li>
-        <li>(Optional) Configure your OpenAI API Key under <strong>AI Settings</strong> for auto-generated captions and hashtags.</li>
-        <li>Go to the <strong>Dashboard</strong>, upload photo or video media, pick target platforms, draft captions, and hit <strong>Publish Now</strong> or <strong>Schedule Post</strong>.</li>
-      </ol>
-    </div>
-
-    <div class="card" style="margin-bottom:20px">
-      <h2 style="font-size:16px;font-weight:700;color:#1c1e21;margin-bottom:12px">📅 Post Scheduling System</h2>
-      <p style="font-size:13.5px;color:#65676b;line-height:1.6">
-        When scheduling posts, you can set individual date-time pickers per platform or use the Bulk Schedule Picker to set a unified publishing time across all accounts. View and manage queued posts under the <strong>Scheduled Posts</strong> page.
-      </p>
-    </div>
-
-    <!-- Complete User-Facing Setup Guide -->
-    <div class="card" style="margin-bottom:30px">
-      <h2 style="font-size:18px;font-weight:700;color:#1c1e21;margin-bottom:16px;display:flex;align-items:center;gap:8px">
-        <span>📖</span> Integration Guide: Connecting Your Accounts &amp; AI
-      </h2>
-      
-      <!-- 1. Facebook -->
-      <div style="margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid #e4e6eb">
-        <h3 style="font-size:15px;font-weight:700;color:#1877f2;margin-bottom:10px">1. Facebook (Page ID &amp; Access Token)</h3>
-        <div style="font-size:13.5px;color:#4b5563;line-height:1.6">
-          <p style="margin-bottom:10px"><strong>Step A (Get your Page ID):</strong><br>
-          Go to Facebook, switch into your specific Facebook Page profile, and click on your Page's name to view your main timeline. Look at the browser URL at the top; the long string of numbers (e.g., <code>1019610687906644</code>) is your <strong>Facebook Page ID</strong>. <em>(Alternatively, find it under your Page's <strong>About &gt; Overview</strong> or <strong>Page transparency</strong> section).</em></p>
-          <p style="margin-bottom:6px"><strong>Step B (Get your Page Access Token):</strong></p>
-          <ol style="padding-left:20px;margin:0;line-height:1.7">
-            <li>Go to the official <a href="https://developers.facebook.com/tools/explorer/" target="_blank" style="color:#1877f2;font-weight:600">Meta Graph API Explorer</a>.</li>
-            <li>In the top-right corner, select your created developer app under the <strong>Meta App</strong> dropdown.</li>
-            <li>Under the <strong>User or Token</strong> dropdown, select <strong>Get Page Access Token</strong> and choose your specific Facebook Page.</li>
-            <li>Under the <strong>Permissions</strong> dropdown, add and select: <code>pages_manage_posts</code> and <code>pages_read_engagement</code>.</li>
-            <li>Click <strong>Generate Access Token</strong>, copy the generated long token string (starting with <code>EAA...</code>), and paste it into your dashboard.</li>
-          </ol>
-        </div>
-      </div>
-
-      <!-- 2. Instagram -->
-      <div style="margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid #e4e6eb">
-        <h3 style="font-size:15px;font-weight:700;color:#e1306c;margin-bottom:10px">2. Instagram (Business Account ID &amp; Access Token)</h3>
-        <div style="font-size:13.5px;color:#4b5563;line-height:1.6">
-          <p style="margin-bottom:10px"><strong>Step A (Prerequisite):</strong> Ensure your Instagram account is switched to a <strong>Business or Creator Account</strong> and is linked directly to your Facebook Page.</p>
-          <p style="margin-bottom:6px"><strong>Step B (Get your Instagram Account ID):</strong></p>
-          <ol style="padding-left:20px;margin:0 0 10px 0;line-height:1.7">
-            <li>Go back to the <a href="https://developers.facebook.com/tools/explorer/" target="_blank" style="color:#1877f2;font-weight:600">Meta Graph API Explorer</a>.</li>
-            <li>Ensure you have added the <code>instagram_basic</code> and <code>instagram_content_publish</code> permissions.</li>
-            <li>In the query bar at the top, type <code>GET /v21.0/me?fields=instagram_business_account</code> and click <strong>Submit</strong>.</li>
-            <li>Copy the ID returned under <code>instagram_business_account</code>.</li>
-          </ol>
-          <p><strong>Step C (Link to System):</strong> Paste your Instagram Account ID and the exact same Facebook Page Access Token into your dashboard's Instagram Settings.</p>
-        </div>
-      </div>
-
-      <!-- 3. YouTube -->
-      <div style="margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid #e4e6eb">
-        <h3 style="font-size:15px;font-weight:700;color:#ff0000;margin-bottom:10px">3. YouTube (Google Data API v3)</h3>
-        <div style="font-size:13.5px;color:#4b5563;line-height:1.6">
-          <p style="margin-bottom:10px"><strong>Step A (Enable API):</strong><br>
-          Go to the <a href="https://console.cloud.google.com/" target="_blank" style="color:#1877f2;font-weight:600">Google Cloud Console</a> and create a new project. Navigate to <strong>APIs &amp; Services &gt; Library</strong>, search for <strong>YouTube Data API v3</strong>, and click <strong>Enable</strong>.</p>
-          <p style="margin-bottom:10px"><strong>Step B (Create Credentials):</strong><br>
-          Go to <strong>Credentials &gt; Create Credentials &gt; OAuth client ID</strong> (configure the OAuth Consent Screen if prompted). Select <strong>Web application</strong> as the application type and add your deployment URL under authorized redirect URIs.</p>
-          <p style="margin-bottom:10px"><strong>Step C (Generate Token):</strong><br>
-          Use the <a href="https://developers.google.com/oauthplayground/" target="_blank" style="color:#1877f2;font-weight:600">Google OAuth 2.0 Playground</a>. Check the box to use your own OAuth Client ID and paste your created Client ID and Client Secret. Select the YouTube Data API v3 scope (<code>https://www.googleapis.com/auth/youtube.upload</code>), click <strong>Authorize APIs</strong>, sign in, and click <strong>Exchange authorization code for tokens</strong> to copy your Access Token.</p>
-          <p><strong>Step D (Link to System):</strong> Paste your YouTube Channel ID (found in your YouTube advanced settings) and the Access Token into your dashboard's YouTube Settings.</p>
-        </div>
-      </div>
-
-      <!-- 4. TikTok -->
-      <div style="margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid #e4e6eb">
-        <h3 style="font-size:15px;font-weight:700;color:#000;margin-bottom:10px">4. TikTok (Client Key, Secret, &amp; OAuth)</h3>
-        <div style="font-size:13.5px;color:#4b5563;line-height:1.6">
-          <p style="margin-bottom:10px"><strong>Step A (Create an App):</strong><br>
-          Go to the <a href="https://developers.tiktok.com/" target="_blank" style="color:#1877f2;font-weight:600">TikTok Developer Portal</a> and create an account. Click <strong>Manage Apps &gt; Create App</strong>, select <strong>Web</strong> as the platform, and apply for the Video Publishing permission (<code>video.upload</code>).</p>
-          <p style="margin-bottom:10px"><strong>Step B (Get Credentials):</strong> Once approved, copy your assigned <strong>Client Key</strong> and <strong>Client Secret</strong> from your app panel.</p>
-          <p style="margin-bottom:10px"><strong>Step C (Generate Token):</strong> Authenticate your TikTok account through your app's OAuth2 authorization flow to generate a valid User Access Token.</p>
-          <p><strong>Step D (Link to System):</strong> Paste your Client Key and Access Token into your dashboard's TikTok Settings page.</p>
-        </div>
-      </div>
-
-      <!-- 5. Pinterest -->
-      <div style="margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid #e4e6eb">
-        <h3 style="font-size:15px;font-weight:700;color:#e60023;margin-bottom:10px">5. Pinterest (App ID, Board ID, &amp; v5 API Token)</h3>
-        <div style="font-size:13.5px;color:#4b5563;line-height:1.6">
-          <p style="margin-bottom:10px"><strong>Step A (Create an App):</strong><br>
-          Go to the <a href="https://developers.pinterest.com/" target="_blank" style="color:#1877f2;font-weight:600">Pinterest Developers Portal</a> and create an app to get your <strong>App ID</strong>.</p>
-          <p style="margin-bottom:10px"><strong>Step B (Get your Board ID):</strong><br>
-          Open the Pinterest Board where you want to post. You can find your Board ID number by typing <code>https://api.pinterest.com/v3/boards/{your-username}/{board-name}/</code> into your browser.</p>
-          <p style="margin-bottom:10px"><strong>Step C (Generate Token):</strong> Use the OAuth process in the Pinterest Developer portal to authorize <code>boards:read</code>, <code>boards:write</code>, <code>pins:read</code>, and <code>pins:write</code> permissions to output your Access Token.</p>
-          <p><strong>Step D (Link to System):</strong> Paste your App ID, Board ID, and Access Token into your dashboard's Pinterest Settings.</p>
-        </div>
-      </div>
-
-      <!-- 6. OpenAI / Gemini AI -->
+<body data-page="help" data-title="Help guide">
+  <div class="app-loading" id="app-loading"><span class="spinner"></span>Loading...</div>
+  <main id="page" hidden>
+    <div class="page-head">
       <div>
-        <h3 style="font-size:15px;font-weight:700;color:#4364f7;margin-bottom:10px">6. OpenAI / Gemini AI (API Key &amp; Model Configuration)</h3>
-        <div style="font-size:13.5px;color:#4b5563;line-height:1.6">
-          <p style="margin-bottom:10px"><strong>Step A (Create an Account):</strong> Go to the official <a href="https://platform.openai.com/" target="_blank" style="color:#1877f2;font-weight:600">OpenAI Platform website</a> and sign in or create a new account.</p>
-          <p style="margin-bottom:10px"><strong>Step B (Navigate to API Keys):</strong> Click on your profile icon or go directly to the <a href="https://platform.openai.com/api-keys" target="_blank" style="color:#1877f2;font-weight:600">OpenAI API Keys page</a>.</p>
-          <p style="margin-bottom:10px"><strong>Step C (Generate Key):</strong> Click <strong>+ Create new secret key</strong>, name it (e.g., <em>"Social Dashboard"</em>), and click <strong>Create secret key</strong>.</p>
-          <p style="margin-bottom:10px"><strong>Step D (Copy and Save):</strong> Copy the secret key immediately (it starts with <code>sk-...</code>), as it will not be shown again.</p>
-          <p><strong>Step E (Link to System):</strong> Paste your key into the OpenAI API Key input field on your dashboard, select your preferred model (such as <code>gpt-4o-mini</code>), and click <strong>Save Configuration</strong>.</p>
-        </div>
+        <h1>Help guide</h1>
+        <p>How to connect accounts, create posts, schedule them and read the results.</p>
       </div>
-
     </div>
-  </section>
-</main>
 
-</div>
+    <div class="split">
+      <article class="card"><div class="card-body prose">
+        <h2 id="start">Getting started</h2>
+        <ol>
+          <li>Open <a href="/accounts.html">Connected accounts</a> and choose <strong>Connect</strong> for each platform you use. You sign in on the platform's own page and approve access.</li>
+          <li>Go to <a href="/create.html">Create post</a>, add a photo or video, pick platforms and write your text.</li>
+          <li>Choose <strong>Publish now</strong>, <strong>Schedule</strong> or <strong>Save as draft</strong>.</li>
+          <li>Follow results on the <a href="/">Dashboard</a>, <a href="/posts.html">Post history</a> and <a href="/analytics.html">Analytics</a> pages.</li>
+        </ol>
 
-<script src="/js/auth.js"></script>
-<script src="/js/nav.js"></script>
+        <h2 id="accounts">Connecting accounts</h2>
+        <p>Each user connects their own accounts. Tokens are encrypted on the server; the browser never sees them.</p>
+        <h3>Facebook</h3>
+        <p>You need to be an admin of a Facebook Page. After connecting, choose which Page to publish to on the Accounts page. Text-only posts, photos and videos are supported.</p>
+        <h3>Instagram</h3>
+        <p>The account must be a Business or Creator (professional) account. Instagram needs a photo or video for every post. Images are converted to JPEG automatically when Cloudinary is configured.</p>
+        <h3>YouTube</h3>
+        <p>Sign in with the Google account that owns the channel. Only videos can be uploaded. The title comes from the YouTube title field, or the first line of the caption.</p>
+        <h3>TikTok</h3>
+        <p>Only videos are supported. Until TikTok approves the app for public posting, videos may be posted as private (only visible to you).</p>
+        <h3>Pinterest</h3>
+        <p>After connecting, choose the board Pins should go to. Pins need an image or a video.</p>
+        <h3>Connection status</h3>
+        <ul>
+          <li><strong>Connected</strong>: ready to publish. YouTube, TikTok, Pinterest and Instagram tokens renew automatically.</li>
+          <li><strong>Token expired</strong>: the platform no longer accepts the token (it expired or you removed access). Choose <strong>Reconnect</strong>.</li>
+          <li><strong>Not connected</strong>: no credentials are stored.</li>
+        </ul>
+        <p>If sign-in for a platform is not set up on the server yet, you can connect with an access token from the platform's developer tools instead (under "Connect with an access token instead").</p>
+
+        <h2 id="posts">Creating posts</h2>
+        <ul>
+          <li>The <strong>All platforms</strong> tab holds shared text. Each platform tab can override it, for example a shorter TikTok caption.</li>
+          <li>The <strong>Ready to go?</strong> panel lists anything that would stop a platform from accepting the post, such as a missing video for YouTube.</li>
+          <li>The <strong>AI assistant</strong> writes captions, titles, descriptions and hashtags per platform in the tone you choose. Always review the text before publishing.</li>
+        </ul>
+
+        <h2 id="scheduling">Scheduling</h2>
+        <p>Pick a date and time, or use a different time per platform. The scheduler checks every 30 seconds and publishes posts when they are due. Schedules are stored in the database, so they survive server restarts.</p>
+        <ul>
+          <li>Edit or reschedule a post any time before it starts publishing.</li>
+          <li><strong>Publish now</strong> on a scheduled post publishes it immediately.</li>
+          <li>Temporary platform errors are retried automatically, up to 2 times.</li>
+          <li>Posts missed by more than 24 hours (for example because the server was offline) are not posted late; they are marked failed so you can decide.</li>
+        </ul>
+
+        <h2 id="failures">When a platform fails</h2>
+        <p>Each platform succeeds or fails independently. A post can be <strong>Partly published</strong>: live on some platforms, failed on others. Open the post to see each error, fix the cause, then choose <strong>Retry</strong>. Retrying only republishes the failed platforms, never the ones that already succeeded.</p>
+
+        <h2 id="analytics">Analytics</h2>
+        <p>Publishing figures come from this system. Views, likes and comments come from each platform's API where it allows it; choose <strong>Refresh engagement data</strong> to update them. Some numbers need extra permissions from the platform and may show as unavailable.</p>
+
+        <h2 id="security">Security tips</h2>
+        <ul>
+          <li>Use a strong, unique password. Changing it signs out your other devices.</li>
+          <li>Use <strong>Sign out of all devices</strong> on the Profile page if you used a shared computer.</li>
+          <li>Disconnecting an account deletes its stored tokens immediately.</li>
+        </ul>
+      </div></article>
+
+      <aside class="card sticky-side"><div class="card-body">
+        <h2 class="mb-12">On this page</h2>
+        <nav class="stack-sm small">
+          <a href="#start">Getting started</a>
+          <a href="#accounts">Connecting accounts</a>
+          <a href="#posts">Creating posts</a>
+          <a href="#scheduling">Scheduling</a>
+          <a href="#failures">When a platform fails</a>
+          <a href="#analytics">Analytics</a>
+          <a href="#security">Security tips</a>
+        </nav>
+      </div></aside>
+    </div>
+  </main>
 </body>
 </html>
