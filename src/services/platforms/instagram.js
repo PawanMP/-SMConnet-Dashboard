@@ -1,11 +1,4 @@
-// Instagram professional accounts. Two API flavours are supported:
-//  - Instagram API with Instagram Login (graph.instagram.com): used by the
-//    OAuth "Connect" button. Long-lived tokens last 60 days and are refreshed
-//    automatically before they expire.
-//  - Instagram API with Facebook Login (graph.facebook.com): for accounts
-//    connected with a Facebook Page/user token ("EAA...") plus the Instagram
-//    business account ID. These tokens cannot be refreshed by the server.
-// Both expose the same /media, /media_publish and insights endpoints.
+// Instagram professional accounts. Two API flavours are supported: Instagram API with Instagram Login (graph.instagram.com): used by the OAuth "Connect" button. Long-lived tokens last 60 days and are refreshed automatically before they expire. Instagram API with Facebook Login (graph.facebook.com): for accounts connected with a Facebook Page/user token ("EAA...") plus the Instagram business account ID. These tokens cannot be refreshed by the server. Both expose the same /media, /media_publish and insights endpoints.
 const config = require("../../config");
 const http = require("../../lib/http");
 const { PlatformError, toPlatformError } = require("../../lib/errors");

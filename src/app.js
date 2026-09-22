@@ -1,5 +1,4 @@
-// Builds the Express application: security middleware, API routes, static
-// frontend and the central error handler.
+// Builds the Express application: security middleware, API routes, static frontend and the central error handler.
 const path = require("path");
 const express = require("express");
 const cookieParser = require("cookie-parser");

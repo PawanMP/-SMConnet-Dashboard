@@ -16,8 +16,7 @@ const { PlatformError, PLATFORM_LABELS, toPlatformError } = require("../lib/erro
 const { randomToken } = require("../lib/crypto");
 const { redact } = require("../lib/redact");
 
-// Checks everything that can be known before calling a platform: the account
-// is connected and the content fits the platform's rules.
+// Checks everything that can be known before calling a platform: the account is connected and the content fits the platform's rules.
 async function preflight(post, platformList, media) {
   const problems = [];
   for (const platform of platformList) {

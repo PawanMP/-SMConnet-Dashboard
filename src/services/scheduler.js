@@ -17,9 +17,7 @@ let running = false;
 let lastRunAt = null;
 let lastSummary = null;
 
-// Targets left in "processing" by a crashed or restarted server. Whether the
-// platform received the post is unknown, so they are marked failed (never
-// auto-republished) and the user decides whether to retry.
+// Targets left in "processing" by a crashed or restarted server. Whether the platform received the post is unknown, so they are marked failed (never auto-republished) and the user decides whether to retry.
 async function recoverStale() {
   const stale = await postsModel.listStaleTargets(time.addMinutes(new Date(), -config.scheduler.staleLockMinutes));
   const posts = new Set();
@@ -35,8 +33,7 @@ async function recoverStale() {
   return stale.length;
 }
 
-// Posts that were due long ago (server offline for a day) are not published
-// late, where they could be out of date; they are failed with an explanation.
+// Posts that were due long ago (server offline for a day) are not published late, where they could be out of date; they are failed with an explanation.
 async function expireMissed(due) {
   const maxHours = config.scheduler.maxLatenessHours;
   const cutoff = Date.now() - maxHours * 3600 * 1000;

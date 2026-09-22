@@ -1,5 +1,4 @@
-// TikTok via Login Kit and the Content Posting API (direct post, file upload).
-// Access tokens last 24 hours and are refreshed with the 365-day refresh token.
+// TikTok via Login Kit and the Content Posting API (direct post, file upload). Access tokens last 24 hours and are refreshed with the 365-day refresh token.
 const config = require("../../config");
 const http = require("../../lib/http");
 const { PlatformError, toPlatformError } = require("../../lib/errors");
@@ -19,7 +18,7 @@ async function call(fn) {
   } catch (err) {
     throw toPlatformError("tiktok", err);
   }
-  // TikTok reports some failures inside a 200 response.
+  // TikTok reports some failures inside  response. not as an HTTP error.
   const e = res.data && res.data.error;
   if (e && typeof e === "object" && e.code && e.code !== "ok") {
     const auth = /access_token|token_invalid|scope_not_authorized/i.test(e.code);
