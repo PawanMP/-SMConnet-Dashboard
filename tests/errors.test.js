@@ -13,6 +13,7 @@ describe("central error handling", () => {
     assert.equal(res.body.success, false);
     assert.equal(res.body.error.code, "NOT_FOUND");
     assert.ok(res.body.error.requestId);
+    assert.equal(res.body.message, res.body.error.message, "message is also available at the top level");
   });
 
   test("malformed JSON is a 400, not a crash", async () => {

@@ -3,7 +3,7 @@ const assert = require("node:assert/strict");
 const fs = require("fs");
 const path = require("path");
 const os = require("os");
-const { H, signUp, addMedia, stubHttp, httpError, resetStubs } = require("./helpers");
+const { H, signUp, addMedia, stubHttp, httpError, resetStubs, db } = require("./helpers");
 const config = require("../src/config");
 
 describe("AI content generation", () => {
@@ -47,6 +47,51 @@ describe("AI content generation", () => {
     assert.equal(sent.data.response_format.type, "json_object");
   });
 
+  test("generates content via OpenRouter, auto-detected from the key prefix", async () => {
+    const { agent } = await signUp();
+    // No aiProvider given: an "sk-or-" key must be recognised as OpenRouter on its own.
+    await agent.put("/api/profile/settings").set(H).send({ apiKey: "sk-or-v1-test-key-1234567890" });
+    const calls = stubHttp((opts) => {
+      assert.equal(opts.url, "https://openrouter.ai/api/v1/chat/completions");
+      assert.equal(opts.headers.Authorization, "Bearer sk-or-v1-test-key-1234567890");
+      assert.ok(opts.headers["HTTP-Referer"]);
+      return { data: { choices: [{ message: { content: JSON.stringify({ facebook: { caption: "Cold brew launch", hashtags: "coffee" } }) } }] } };
+    });
+    const res = await agent.post("/api/ai/generate").set(H).send({ platforms: ["facebook"], context: "cold brew" });
+    assert.equal(res.status, 200);
+    assert.equal(res.body.provider, "openrouter");
+    assert.equal(res.body.content.facebook.caption, "Cold brew launch");
+    assert.equal(res.body.content.facebook.hashtags, "#coffee");
+    assert.equal(calls.length, 1);
+  });
+
+  test("respects an explicit OpenRouter model name and reports an OpenRouter-side error", async () => {
+    const { agent } = await signUp();
+    await agent.put("/api/profile/settings").set(H).send({ apiKey: "sk-or-v1-test-key-1234567890", aiProvider: "openrouter", aiModel: "anthropic/claude-3.5-sonnet" });
+    const calls = stubHttp(() => ({ data: { error: { code: 402, message: "Insufficient credits" } } }));
+    const res = await agent.post("/api/ai/generate").set(H).send({ platforms: ["facebook"], context: "x" });
+    assert.equal(res.status, 502);
+    assert.equal(res.body.error.code, "AI_PROVIDER_ERROR");
+    assert.match(res.body.error.message, /OpenRouter/);
+    assert.equal(calls[0].data.model, "anthropic/claude-3.5-sonnet");
+  });
+
+  test("falls back to a configured server provider when the chosen one has no key", async () => {
+    const { agent } = await signUp();
+    const original = config.ai.openrouterApiKey;
+    try {
+      config.ai.openrouterApiKey = "sk-or-server-key-1234567890";
+      // User asks for openai, but only the server's OpenRouter key exists.
+      await agent.put("/api/profile/settings").set(H).send({ aiProvider: "openai" });
+      stubHttp(() => ({ data: { choices: [{ message: { content: '{"facebook":{"caption":"x","hashtags":""}}' } }] } }));
+      const res = await agent.post("/api/ai/generate").set(H).send({ platforms: ["facebook"], context: "x" });
+      assert.equal(res.status, 200);
+      assert.equal(res.body.provider, "openrouter");
+    } finally {
+      config.ai.openrouterApiKey = original;
+    }
+  });
+
   test("rewrites a single field", async () => {
     const { agent } = await signUp();
     await agent.put("/api/profile/settings").set(H).send({ apiKey: "sk-test-key-123456" });
@@ -75,6 +120,19 @@ describe("AI content generation", () => {
     assert.equal(res.status, 502);
     assert.equal(res.body.error.code, "AI_AUTH_FAILED");
     assert.doesNotMatch(JSON.stringify(res.body), /sk-bad-key/);
+  });
+
+  test("/api/ai/test verifies an OpenRouter key via its auth endpoint", async () => {
+    const { agent } = await signUp();
+    const calls = stubHttp((opts) => {
+      assert.equal(opts.url, "https://openrouter.ai/api/v1/auth/key");
+      assert.equal(opts.headers.Authorization, "Bearer sk-or-v1-entered-key-123456");
+      return { data: { data: { label: "test" } } };
+    });
+    const res = await agent.post("/api/ai/test").set(H).send({ apiKey: "sk-or-v1-entered-key-123456" });
+    assert.equal(res.status, 200);
+    assert.equal(res.body.provider, "openrouter");
+    assert.equal(calls.length, 1);
   });
 });
 
@@ -116,11 +174,17 @@ describe("media uploads (local storage)", () => {
     }
   });
 
-  test("media used by a draft cannot be deleted; unused media can", async () => {
+  test("media a post still references cannot be deleted; unused media can", async () => {
     const { agent, user } = await signUp();
     const used = await addMedia(user.id);
-    await agent.post("/api/posts").set(H).send({ caption: "uses it", mediaId: used.id });
+    const post = await agent.post("/api/posts").set(H).send({ caption: "uses it", mediaId: used.id });
     assert.equal((await agent.delete(`/api/media/${used.id}`).set(H)).status, 409);
+
+    // Published history keeps its media too, until the post itself is removed.
+    await db.run("UPDATE posts SET status = 'published' WHERE id = ?", [post.body.post.id]);
+    assert.equal((await agent.delete(`/api/media/${used.id}`).set(H)).status, 409);
+    await agent.delete(`/api/posts/${post.body.post.id}`).set(H);
+    assert.equal((await agent.delete(`/api/media/${used.id}`).set(H)).status, 200);
 
     const up = await agent.post("/api/media/upload").set(H).attach("file", PNG, "free.png");
     assert.equal((await agent.delete(`/api/media/${up.body.media.id}`).set(H)).status, 200);

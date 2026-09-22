@@ -7,6 +7,7 @@ const activity = require("./activity");
 const logger = require("../lib/logger");
 const time = require("../lib/time");
 const { notFound, badRequest, PlatformError } = require("../lib/errors");
+const { redact } = require("../lib/redact");
 
 function statusOf(account, adapter) {
   if (!account) return "not_connected";
@@ -88,9 +89,9 @@ async function test(req, platform) {
     return { ok: true, account: view(platform, updated), profile };
   } catch (err) {
     if (err instanceof PlatformError && err.auth) await tokens.markExpired(await accountsModel.findById(account.id), err.message);
-    await activity.log(req, "account.test", { entityType: "social_account", entityId: account.id, details: { platform, ok: false, error: err.message } });
+    await activity.log(req, "account.test", { entityType: "social_account", entityId: account.id, details: { platform, ok: false, error: redact(err.message) } });
     if (!(err instanceof PlatformError)) throw err;
-    return { ok: false, error: err.message, account: view(platform, await accountsModel.findById(account.id)) };
+    return { ok: false, error: redact(err.message), account: view(platform, await accountsModel.findById(account.id)) };
   }
 }
 

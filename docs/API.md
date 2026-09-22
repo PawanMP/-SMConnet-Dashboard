@@ -26,6 +26,7 @@ Error:
 ```json
 {
   "success": false,
+  "message": "platforms: Select at least one platform.",
   "error": {
     "code": "VALIDATION_ERROR",
     "message": "platforms: Select at least one platform.",
@@ -34,6 +35,10 @@ Error:
   }
 }
 ```
+
+The human-readable text is repeated at the top level as `message`, so a simple
+client can read `body.message` while richer clients use `error.code` and
+`error.details`.
 
 | HTTP | `code` | Meaning |
 | --- | --- | --- |

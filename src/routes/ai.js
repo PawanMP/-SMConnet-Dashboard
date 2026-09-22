@@ -64,7 +64,7 @@ router.post(
     z
       .object({
         apiKey: z.string().trim().min(10).max(300).optional(),
-        provider: z.enum(["openai", "gemini"]).optional(),
+        provider: z.enum(ai.PROVIDERS).optional(),
         model: z.string().trim().max(100).regex(/^[\w.\-:/]*$/).optional(),
       })
       .strict()

@@ -7,16 +7,18 @@ const activity = require("./activity");
 const logger = require("../lib/logger");
 const time = require("../lib/time");
 const { PlatformError, PLATFORM_LABELS } = require("../lib/errors");
+const { redact } = require("../lib/redact");
 
 const DEFAULT_REFRESH_WINDOW_MS = 5 * 60 * 1000;
 
 // Marks the account as needing reconnection and tells the user once.
 async function markExpired(account, reason) {
   const wasConnected = account.status === "connected";
-  await accounts.setStatus(account.id, "expired", reason);
+  const safeReason = redact(reason);
+  await accounts.setStatus(account.id, "expired", safeReason);
   if (wasConnected) {
-    await notifier.connectionProblem(account, reason);
-    await activity.log(account.user_id, "account.token_expired", { entityType: "social_account", entityId: account.id, details: { platform: account.platform, reason } });
+    await notifier.connectionProblem(account, safeReason);
+    await activity.log(account.user_id, "account.token_expired", { entityType: "social_account", entityId: account.id, details: { platform: account.platform, reason: safeReason } });
   }
 }
 

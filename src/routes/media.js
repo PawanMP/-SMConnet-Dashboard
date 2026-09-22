@@ -77,7 +77,7 @@ router.delete(
     const media = await mediaModel.findForUser(Number(req.params.id), req.user.id);
     if (!media) throw notFound("Media not found.");
     if (await mediaModel.activeReferences(media.id)) {
-      throw conflict("This media is used by a draft or scheduled post. Remove it from those posts first.");
+      throw conflict("This media is used by one or more posts. Delete those posts first, or remove the media from them.");
     }
     await mediaService.destroy(media);
     await activity.log(req, "media.delete", { entityType: "media", entityId: media.id });

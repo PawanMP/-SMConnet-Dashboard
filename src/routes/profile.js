@@ -8,7 +8,7 @@ const { asyncHandler: h } = require("../middleware/requestContext");
 const { setSessionCookie, clearSessionCookie } = require("../middleware/auth");
 const { z, body, schemas } = require("../lib/validate");
 const { AppError, conflict } = require("../lib/errors");
-const { TONES } = require("../services/ai");
+const { TONES, PROVIDERS } = require("../services/ai");
 
 const router = express.Router();
 
@@ -42,7 +42,7 @@ const passwordSchema = z.object({
 
 const settingsSchema = z
   .object({
-    aiProvider: z.enum(["openai", "gemini"]).nullable().optional(),
+    aiProvider: z.enum(PROVIDERS).nullable().optional(),
     aiModel: z.string().trim().max(100).regex(/^[\w.\-:/]*$/, "Model name contains invalid characters.").nullable().optional(),
     apiKey: z.string().trim().min(10, "API key looks too short.").max(300).optional(),
     clearApiKey: z.boolean().optional(),

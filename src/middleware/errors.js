@@ -39,13 +39,17 @@ function errorHandler(err, req, res, _next) {
     logger.debug("Request failed", { requestId: req.id, path: req.path, status, code: known.code });
   }
 
+  // Unknown errors may contain internals (SQL, file paths, stack traces), so
+  // production responses only carry a generic message.
+  const message = known ? known.message : config.isProd ? "Something went wrong on our side. Please try again." : err.message;
   const body = {
     success: false,
+    // Repeated at the top level so simple API clients can read `message`
+    // directly; the object form carries the code and field details.
+    message,
     error: {
       code: known ? known.code : "INTERNAL_ERROR",
-      // Unknown errors may contain internals (SQL, file paths, stack traces),
-      // so production responses only carry a generic message.
-      message: known ? known.message : config.isProd ? "Something went wrong on our side. Please try again." : err.message,
+      message,
       requestId: req.id,
     },
   };

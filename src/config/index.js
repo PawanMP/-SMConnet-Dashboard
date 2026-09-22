@@ -167,11 +167,15 @@ function build(env = process.env) {
     },
 
     ai: {
-      defaultProvider: (env.AI_DEFAULT_PROVIDER || (env.OPENAI_API_KEY ? "openai" : env.GEMINI_API_KEY ? "gemini" : "openai")).toLowerCase(),
+      defaultProvider: (
+        env.AI_DEFAULT_PROVIDER || (env.OPENAI_API_KEY ? "openai" : env.GEMINI_API_KEY ? "gemini" : env.OPENROUTER_API_KEY ? "openrouter" : "openai")
+      ).toLowerCase(),
       openaiApiKey: env.OPENAI_API_KEY || "",
       openaiModel: env.OPENAI_MODEL || "gpt-4o-mini",
       geminiApiKey: env.GEMINI_API_KEY || "",
       geminiModel: env.GEMINI_MODEL || "gemini-2.5-flash",
+      openrouterApiKey: env.OPENROUTER_API_KEY || "",
+      openrouterModel: env.OPENROUTER_MODEL || "openai/gpt-4o-mini",
     },
 
     platforms: {

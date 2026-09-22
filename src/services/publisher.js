@@ -14,6 +14,7 @@ const notifier = require("./notifier");
 const activity = require("./activity");
 const { PlatformError, PLATFORM_LABELS, toPlatformError } = require("../lib/errors");
 const { randomToken } = require("../lib/crypto");
+const { redact } = require("../lib/redact");
 
 // Checks everything that can be known before calling a platform: the account
 // is connected and the content fits the platform's rules.
@@ -75,12 +76,13 @@ async function publishOne(post, target, media, trigger) {
       nextStatus = "scheduled";
       retryAt = time.addMinutes(new Date(), config.scheduler.autoRetryDelayMinutes * attemptNo);
     }
-    await postsModel.completeTarget(target.id, { success: false, message: pe.message, code: pe.code, nextStatus, retryAt });
-    await postsModel.recordAttempt(target, { attemptNo, trigger, success: false, message: pe.message, durationMs: Date.now() - started });
+    const safeMessage = redact(pe.message);
+    await postsModel.completeTarget(target.id, { success: false, message: safeMessage, code: pe.code, nextStatus, retryAt });
+    await postsModel.recordAttempt(target, { attemptNo, trigger, success: false, message: safeMessage, durationMs: Date.now() - started });
     return {
       platform,
       success: false,
-      error: pe.message,
+      error: safeMessage,
       code: pe.code,
       attempts: attemptNo,
       willRetry: nextStatus === "scheduled",
@@ -125,7 +127,7 @@ async function publishClaimed(post, claimed, trigger) {
   await activity.log(post.user_id, action, {
     entityType: "post",
     entityId: post.id,
-    details: { results: results.map((r) => ({ platform: r.platform, success: r.success, error: r.error || undefined })) },
+    details: { results: results.map((r) => ({ platform: r.platform, success: r.success, error: r.error ? redact(r.error) : undefined })) },
   });
   return { post: updated, results };
 }

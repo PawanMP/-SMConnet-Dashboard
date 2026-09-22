@@ -72,12 +72,10 @@ async function list(userId, { page = 1, pageSize = 24, type } = {}) {
   return { items: rows.map(toPublic), total, page, pageSize };
 }
 
-// Posts that still need this media to publish (so it must not be deleted).
+// Any post that references this media, including published history. Deleting
+// the file would leave those posts without their media record.
 async function activeReferences(mediaId) {
-  const row = await db.get(
-    "SELECT COUNT(*) AS n FROM posts WHERE media_id = ? AND status IN ('draft', 'scheduled', 'publishing')",
-    [mediaId]
-  );
+  const row = await db.get("SELECT COUNT(*) AS n FROM posts WHERE media_id = ?", [mediaId]);
   return Number(row.n);
 }
 

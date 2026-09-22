@@ -28,6 +28,7 @@
               <option value="">Automatic (use the server default)</option>
               <option value="openai">OpenAI</option>
               <option value="gemini">Google Gemini</option>
+              <option value="openrouter">OpenRouter</option>
             </select>
           </div>
           <div class="field">
@@ -39,13 +40,17 @@
               <option value="gpt-4.1-mini"></option>
               <option value="gemini-2.5-flash"></option>
               <option value="gemini-2.5-pro"></option>
+              <option value="openai/gpt-4o-mini"></option>
+              <option value="anthropic/claude-3.5-sonnet"></option>
+              <option value="google/gemini-2.5-flash"></option>
+              <option value="meta-llama/llama-3.3-70b-instruct"></option>
             </datalist>
-            <span class="hint">The model must belong to the chosen provider.</span>
+            <span class="hint">The model must belong to the chosen provider. OpenRouter model names include the vendor, e.g. "openai/gpt-4o-mini".</span>
           </div>
           <div class="field">
             <label class="label" for="api-key">Your own API key <span class="optional">(optional)</span></label>
             <div class="input-wrap">
-              <input class="input" type="password" id="api-key" autocomplete="off" placeholder="sk-... or AIza..." />
+              <input class="input" type="password" id="api-key" autocomplete="off" placeholder="sk-... or AIza... or sk-or-..." />
               <button type="button" class="btn btn-ghost btn-reveal" data-reveal="api-key" aria-label="Show"></button>
             </div>
             <span class="hint" id="key-hint">If set, your key is used instead of the server's. It is encrypted and never shown again.</span>
@@ -79,6 +84,9 @@
             <ol><li>Sign in at <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener">platform.openai.com/api-keys</a>.</li><li>Choose <strong>Create new secret key</strong> and copy it (it starts with <code>sk-</code>).</li></ol>
             <h3>Google Gemini</h3>
             <ol><li>Open <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener">Google AI Studio</a>.</li><li>Choose <strong>Create API key</strong> and copy it (it starts with <code>AIza</code>).</li></ol>
+            <h3>OpenRouter</h3>
+            <ol><li>Sign in at <a href="https://openrouter.ai/keys" target="_blank" rel="noopener">openrouter.ai/keys</a>.</li><li>Choose <strong>Create Key</strong> and copy it (it starts with <code>sk-or-</code>).</li></ol>
+            <p>OpenRouter gives access to many models (OpenAI, Anthropic, Google, Meta and more) through one key, including some free-tier models. Model names must include the vendor prefix, e.g. <code>openai/gpt-4o-mini</code>.</p>
           </div>
         </section>
       </aside>

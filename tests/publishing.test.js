@@ -106,6 +106,22 @@ describe("multi-platform publishing", () => {
     assert.equal(limit.body.error.code, "RETRY_LIMIT_REACHED");
   });
 
+  test("never stores a token inside a failure message", async () => {
+    const { user, agent } = await signUp();
+    await connect(user.id, "facebook");
+    const secret = "EAABwzLixnjYBO1ZAZCgHtq9ZBkZDsecret";
+    fakePublish("facebook", new PlatformError("facebook", `Facebook: Error validating access token ${secret}`));
+    const created = await agent.post("/api/posts").set(H).send({ caption: "x", platforms: ["facebook"], action: "publish" });
+
+    const target = await db.get("SELECT error_message FROM post_targets WHERE post_id = ?", [created.body.post.id]);
+    const attempt = await db.get("SELECT error_message FROM publish_attempts WHERE post_id = ?", [created.body.post.id]);
+    const log = await db.get("SELECT details FROM activity_logs WHERE user_id = ? AND action = 'post.publish'", [user.id]);
+    for (const stored of [target.error_message, attempt.error_message, log.details, JSON.stringify(created.body)]) {
+      assert.ok(!String(stored).includes(secret), `token leaked: ${stored}`);
+    }
+    assert.match(target.error_message, /Error validating access token \[redacted\]/);
+  });
+
   test("blocks publishing when accounts are missing or content does not fit", async () => {
     const { user, agent } = await signUp();
     await connect(user.id, "youtube");

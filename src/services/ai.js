@@ -1,6 +1,6 @@
 // AI content generation (captions, hashtags, titles, descriptions) using
-// OpenAI or Google Gemini. A user's own API key takes precedence over the
-// server's key. Keys never leave the server.
+// OpenAI, Google Gemini or OpenRouter. A user's own API key takes precedence
+// over the server's key. Keys never leave the server.
 const config = require("../config");
 const http = require("../lib/http");
 const settingsModel = require("../models/settings");
@@ -23,13 +23,32 @@ const PLATFORM_RULES = {
 
 const EMOJI = /[\p{Extended_Pictographic}\u{1F1E6}-\u{1F1FF}\u{FE0F}\u{200D}]/gu;
 
-function guessProvider(key) {
-  return /^AIza/.test(key) ? "gemini" : "openai";
+const PROVIDERS = ["openai", "gemini", "openrouter"];
+const PROVIDER_LABEL = { openai: "OpenAI", gemini: "Google Gemini", openrouter: "OpenRouter" };
+
+function serverKey(provider) {
+  return { openai: config.ai.openaiApiKey, gemini: config.ai.geminiApiKey, openrouter: config.ai.openrouterApiKey }[provider];
 }
 
+function defaultModelFor(provider) {
+  return { openai: config.ai.openaiModel, gemini: config.ai.geminiModel, openrouter: config.ai.openrouterModel }[provider];
+}
+
+// OpenRouter keys start with "sk-or-", Gemini keys start with "AIza"; anything
+// else is assumed to be an OpenAI key.
+function guessProvider(key) {
+  if (/^sk-or-/.test(key)) return "openrouter";
+  if (/^AIza/.test(key)) return "gemini";
+  return "openai";
+}
+
+// OpenRouter model names are "vendor/model" (e.g. "openai/gpt-4o-mini");
+// Gemini model names start with "gemini"; anything else is a plain OpenAI name.
 function modelFits(provider, model) {
   if (!model) return false;
-  return provider === "gemini" ? /^gemini/i.test(model) : !/^gemini/i.test(model);
+  if (provider === "openrouter") return model.includes("/");
+  if (provider === "gemini") return /^gemini/i.test(model);
+  return !/^gemini/i.test(model) && !model.includes("/");
 }
 
 // Picks provider, key and model: personal key first, then the server's keys.
@@ -43,7 +62,6 @@ async function resolveEngine(userId) {
       personalKey = null;
     }
   }
-  const serverKeys = { openai: config.ai.openaiApiKey, gemini: config.ai.geminiApiKey };
   let provider;
   let apiKey;
   let source;
@@ -53,22 +71,22 @@ async function resolveEngine(userId) {
     source = "personal";
   } else {
     provider = s.ai_provider || config.ai.defaultProvider;
-    apiKey = serverKeys[provider];
+    apiKey = serverKey(provider);
     if (!apiKey) {
-      const other = provider === "openai" ? "gemini" : "openai";
-      if (serverKeys[other]) {
-        provider = other;
-        apiKey = serverKeys[other];
+      // Fall back to whichever server key is actually configured.
+      const fallback = PROVIDERS.find((p) => p !== provider && serverKey(p));
+      if (fallback) {
+        provider = fallback;
+        apiKey = serverKey(fallback);
       }
     }
     source = apiKey ? "server" : null;
   }
-  const defaultModel = provider === "gemini" ? config.ai.geminiModel : config.ai.openaiModel;
   return {
     provider,
     apiKey,
     source,
-    model: modelFits(provider, s.ai_model) ? s.ai_model : defaultModel,
+    model: modelFits(provider, s.ai_model) ? s.ai_model : defaultModelFor(provider),
     allowEmojis: !!Number(s.allow_emojis),
     defaultTone: s.default_tone || "friendly",
   };
@@ -81,14 +99,14 @@ async function status(userId) {
     provider: e.apiKey ? e.provider : null,
     model: e.apiKey ? e.model : null,
     source: e.source,
-    serverProviders: { openai: !!config.ai.openaiApiKey, gemini: !!config.ai.geminiApiKey },
+    serverProviders: { openai: !!config.ai.openaiApiKey, gemini: !!config.ai.geminiApiKey, openrouter: !!config.ai.openrouterApiKey },
     tones: TONES,
   };
 }
 
 function requireEngine(engine) {
   if (!engine.apiKey) {
-    throw new AppError(503, "AI_NOT_CONFIGURED", "AI is not set up. Add an OpenAI or Gemini API key in AI Settings, or ask the administrator to add one.");
+    throw new AppError(503, "AI_NOT_CONFIGURED", "AI is not set up. Add an OpenAI, Gemini or OpenRouter API key in AI Settings, or ask the administrator to add one.");
   }
 }
 
@@ -110,10 +128,17 @@ async function imageInput(userId, mediaId) {
 function aiError(provider, err) {
   const res = err.response;
   const msg = (res && res.data && res.data.error && (res.data.error.message || res.data.error.status)) || err.message;
-  const label = provider === "gemini" ? "Gemini" : "OpenAI";
+  const label = PROVIDER_LABEL[provider] || provider;
   if (res && (res.status === 401 || res.status === 403)) return new AppError(502, "AI_AUTH_FAILED", `${label} rejected the API key. Check the key in AI Settings.`);
   if (res && res.status === 429) return new AppError(429, "AI_RATE_LIMITED", `${label} rate limit or quota reached. Try again shortly.`);
   return new AppError(502, "AI_PROVIDER_ERROR", `${label} request failed: ${msg}`);
+}
+
+// OpenRouter is OpenAI-compatible (same request/response shape), just a
+// different host, and it asks for these two extra identifying headers.
+const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
+function openrouterHeaders(apiKey) {
+  return { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json", "HTTP-Referer": config.appUrl, "X-Title": "Social Poster" };
 }
 
 async function completeJson(engine, system, prompt, image) {
@@ -143,15 +168,30 @@ async function completeJson(engine, system, prompt, image) {
 
     const content = [{ type: "text", text: prompt }];
     if (image) content.push({ type: "image_url", image_url: { url: image.url || `data:${image.mime};base64,${image.base64}` } });
+    const messages = [
+      { role: "system", content: system },
+      { role: "user", content },
+    ];
+
+    if (engine.provider === "openrouter") {
+      // Routed to many different underlying models, some of which reject an
+      // unsupported response_format, so JSON output relies on the prompt
+      // instructions plus the fence-stripping in parseJson below.
+      const { data } = await http.post(
+        OPENROUTER_URL,
+        { model: engine.model, messages, temperature: 0.8, max_tokens: 2000 },
+        { headers: openrouterHeaders(engine.apiKey), timeout: 60000 }
+      );
+      if (data.error) throw Object.assign(new Error(data.error.message || "OpenRouter request failed"), { response: { status: data.error.code, data } });
+      return parseJson(((data.choices || [])[0] || {}).message?.content || "");
+    }
+
     const reasoningModel = /^(o\d|gpt-5)/i.test(engine.model);
     const { data } = await http.post(
       "https://api.openai.com/v1/chat/completions",
       {
         model: engine.model,
-        messages: [
-          { role: "system", content: system },
-          { role: "user", content },
-        ],
+        messages,
         response_format: { type: "json_object" },
         ...(reasoningModel ? {} : { temperature: 0.8 }),
         max_completion_tokens: 2000,
@@ -259,11 +299,14 @@ async function rewrite(userId, { platform, field, mode, currentText, context, to
 async function testKey(userId, { apiKey, provider, model }) {
   const engine = await resolveEngine(userId);
   const e = apiKey ? { ...engine, apiKey, provider: provider || guessProvider(apiKey), model: model || engine.model } : engine;
-  if (apiKey && !modelFits(e.provider, e.model)) e.model = e.provider === "gemini" ? config.ai.geminiModel : config.ai.openaiModel;
+  if (apiKey && !modelFits(e.provider, e.model)) e.model = defaultModelFor(e.provider);
   requireEngine(e);
   try {
     if (e.provider === "gemini") {
       await http.get(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(e.model)}`, { headers: { "x-goog-api-key": e.apiKey }, timeout: 15000 });
+    } else if (e.provider === "openrouter") {
+      // Confirms the key itself is valid; independent of which model is chosen.
+      await http.get("https://openrouter.ai/api/v1/auth/key", { headers: openrouterHeaders(e.apiKey), timeout: 15000 });
     } else {
       await http.get(`https://api.openai.com/v1/models/${encodeURIComponent(e.model)}`, { headers: { Authorization: `Bearer ${e.apiKey}` }, timeout: 15000 });
     }
@@ -273,4 +316,4 @@ async function testKey(userId, { apiKey, provider, model }) {
   return { ok: true, provider: e.provider, model: e.model, source: apiKey ? "entered" : e.source };
 }
 
-module.exports = { TONES, MODES, FIELDS, PLATFORM_RULES, status, generate, rewrite, testKey, resolveEngine };
+module.exports = { TONES, MODES, FIELDS, PLATFORM_RULES, PROVIDERS, PROVIDER_LABEL, status, generate, rewrite, testKey, resolveEngine };
