@@ -10,7 +10,10 @@ process.emitWarning = function emitWarning(warning, ...args) {
   if (text && text.includes("SQLite is an experimental feature")) return;
   return originalEmitWarning.call(process, warning, ...args);
 };
-const { DatabaseSync } = require("node:sqlite");
+// Required indirectly (not as a string literal) so build-time bundlers/tracers
+// don't try to statically resolve this Node builtin, which some serverless
+// build environments fail on even though it resolves fine at runtime.
+const { DatabaseSync } = require("node" + ":sqlite");
 process.emitWarning = originalEmitWarning;
 
 function normalize(params = []) {
