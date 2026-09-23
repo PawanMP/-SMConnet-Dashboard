@@ -587,6 +587,7 @@ async function submit(action, button) {
       } else if (action === "schedule") {
         showScheduled(post);
       } else {
+        state.platforms.clear();
         showResults(post, res.results);
       }
     } catch (err) {
@@ -755,8 +756,6 @@ async function init() {
       $("#edit-notice").innerHTML = `<div class="mb-20">${errorAlert(err)}</div>`;
     }
   } else {
-    // Pre-select connected platforms so a new post is one click from ready.
-    for (const a of accounts.accounts) if (a.status === "connected") state.platforms.add(a.platform);
     if (p.get("mode") === "schedule" || p.get("date")) setMode("schedule");
     if (p.get("mode") === "draft") setMode("draft");
     if (p.get("date")) {

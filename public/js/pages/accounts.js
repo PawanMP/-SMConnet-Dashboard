@@ -153,8 +153,11 @@ function card(a) {
   const problem = expired || a.status === "error"
     ? alertHtml("error", "Reconnect required", a.lastError || "The access token expired or was revoked. Scheduled posts to this platform will fail until you reconnect.")
     : "";
+  const needsReconnect = expired || a.status === "error";
   const oauthBtn = a.oauthConfigured
     ? `<button type="button" class="btn ${connected ? "btn-secondary" : "btn-primary"}" data-act="connect">${icon(connected ? "refresh" : "plug")}${connected ? "Reconnect" : expired ? "Reconnect" : "Connect"} ${esc(a.label)}</button>`
+    : needsReconnect
+    ? `<button type="button" class="btn btn-secondary" data-act="focus-token">${icon("key")}Reconnect ${esc(a.label)} with a token</button>`
     : `<button type="button" class="btn btn-primary" disabled title="The administrator has not configured ${esc(a.label)} sign-in yet">${icon("plug")}Connect ${esc(a.label)}</button>`;
   const resourcePicker = connected && a.resourceLabel && a.platform !== "youtube"
     ? `<div class="field" data-resource-box>
@@ -180,8 +183,8 @@ function card(a) {
         ${a.status !== "not_connected" ? `<button type="button" class="btn btn-secondary" data-act="test">${icon("checkCircle")}Test connection</button>` : ""}
         ${a.status !== "not_connected" ? `<button type="button" class="btn btn-danger-outline" data-act="disconnect">${icon("unplug")}Disconnect</button>` : ""}
       </div>
-      <details class="advanced">
-        <summary>${icon("chevronRight", "icon-sm")}Connect with an access token instead</summary>
+      <details class="advanced" data-token-details ${!a.oauthConfigured && needsReconnect ? "open" : ""}>
+        <summary>${icon("chevronRight", "icon-sm")}${!a.oauthConfigured && needsReconnect ? `Reconnect ${esc(a.label)} with an access token` : "Connect with an access token instead"}</summary>
         <form class="mt-12" data-token-form novalidate>
           <p class="small muted mb-12">${esc(info.token)}</p>
           <div class="field">
@@ -192,7 +195,7 @@ function card(a) {
           ${info.refresh ? `<div class="field"><label class="label" for="rtok-${a.platform}">Refresh token <span class="optional">(optional)</span></label><input class="input" type="password" id="rtok-${a.platform}" name="refreshToken" autocomplete="off" /></div>` : ""}
           ${info.idLabel ? `<div class="field"><label class="label" for="ext-${a.platform}">${esc(info.idLabel)}</label><input class="input" id="ext-${a.platform}" name="externalId" autocomplete="off" /></div>` : ""}
           <div data-token-error></div>
-          <button type="submit" class="btn btn-secondary">${icon("key")}Verify and save token</button>
+          <button type="submit" class="btn btn-secondary">${icon("key")}${!a.oauthConfigured && needsReconnect ? `Reconnect ${esc(a.label)}` : "Verify and save token"}</button>
         </form>
       </details>
     </div>
@@ -255,6 +258,15 @@ function toggleHelp(platform, btn) {
 async function act(a, action, btn) {
   try {
     if (action === "help") return toggleHelp(a.platform, btn);
+    if (action === "focus-token") {
+      const root = document.getElementById(a.platform);
+      const details = root.querySelector("[data-token-details]");
+      details.open = true;
+      const input = document.getElementById(`tok-${a.platform}`);
+      details.scrollIntoView({ block: "center", behavior: "smooth" });
+      input.focus();
+      return;
+    }
     if (action === "connect") {
       await busy(btn, "Redirecting...", async () => {
         const { url } = await api.post(`/api/accounts/${a.platform}/connect`);
