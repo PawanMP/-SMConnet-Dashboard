@@ -16,14 +16,16 @@ const { PLATFORM_LABELS } = require("../lib/errors");
 // ── Views ─────────────────────────────────────────────────────────────────────
 
 async function detail(post) {
-  const [targets, attempts, metrics, media] = await Promise.all([
+  const [targets, attempts, metrics, media, thumbnail] = await Promise.all([
     postsModel.listTargets(post.id),
     postsModel.listAttempts(post.id),
     metricsModel.latestForPost(post.id),
     post.media_id ? mediaModel.findById(post.media_id) : null,
+    post.thumbnail_media_id ? mediaModel.findById(post.thumbnail_media_id) : null,
   ]);
   return postsModel.toPublic(post, {
     media: mediaModel.toPublic(media),
+    thumbnail: mediaModel.toPublic(thumbnail),
     targets: targets.map(postsModel.targetToPublic),
     attempts,
     metrics,
@@ -56,10 +58,18 @@ async function requirePost(userId, id) {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-async function resolveMedia(userId, mediaId) {
+async function resolveMedia(userId, mediaId, field = "mediaId") {
   if (!mediaId) return null;
   const media = await mediaModel.findForUser(mediaId, userId);
-  if (!media) throw validationError("The selected media file was not found.", [{ field: "mediaId", message: "Media not found." }]);
+  if (!media) throw validationError("The selected media file was not found.", [{ field, message: "Media not found." }]);
+  return media;
+}
+
+async function resolveThumbnail(userId, thumbnailMediaId) {
+  const media = await resolveMedia(userId, thumbnailMediaId, "thumbnailMediaId");
+  if (media && media.resource_type !== "image") {
+    throw validationError("The thumbnail must be an image.", [{ field: "thumbnailMediaId", message: "The thumbnail must be an image." }]);
+  }
   return media;
 }
 
@@ -70,6 +80,7 @@ function contentFields(input) {
     description: input.description ?? "",
     hashtags: input.hashtags ?? "",
     mediaId: input.mediaId ?? null,
+    thumbnailMediaId: input.thumbnailMediaId ?? null,
     tone: input.tone ?? null,
     platforms: input.platforms || [],
     platformContent: input.platformContent || {},
@@ -86,6 +97,7 @@ function draftRow(userId, fields) {
     description: fields.description,
     hashtags: fields.hashtags,
     media_id: fields.mediaId,
+    thumbnail_media_id: fields.thumbnailMediaId,
     platform_content: JSON.stringify(fields.platformContent),
   };
 }
@@ -109,9 +121,9 @@ function scheduleTimes(platformList, input) {
   return times;
 }
 
-async function assertReady(userId, fields, media) {
+async function assertReady(userId, fields, media, thumbnail) {
   if (!fields.platforms.length) throw validationError("Select at least one platform.", [{ field: "platforms", message: "Select at least one platform." }]);
-  const problems = await publisher.preflight(draftRow(userId, fields), fields.platforms, media);
+  const problems = await publisher.preflight(draftRow(userId, fields), fields.platforms, media, thumbnail);
   if (problems.length) {
     throw validationError(
       problems.length === 1 ? problems[0].message : `${problems.length} problems need fixing before publishing.`,
@@ -181,11 +193,12 @@ async function persist(req, existing, fields, action, times) {
 async function create(req, input) {
   const fields = contentFields(input);
   const media = await resolveMedia(req.user.id, fields.mediaId);
+  const thumbnail = await resolveThumbnail(req.user.id, fields.thumbnailMediaId);
   if (input.action === "draft") {
     assertDraftHasContent(fields);
     return persist(req, null, fields, "draft");
   }
-  await assertReady(req.user.id, fields, media);
+  await assertReady(req.user.id, fields, media, thumbnail);
   const times = input.action === "schedule" ? scheduleTimes(fields.platforms, input) : null;
   return persist(req, null, fields, input.action, times);
 }
@@ -203,12 +216,13 @@ async function update(req, id, input) {
   }
   const fields = contentFields(input);
   const media = await resolveMedia(req.user.id, fields.mediaId);
+  const thumbnail = await resolveThumbnail(req.user.id, fields.thumbnailMediaId);
   const action = input.action || (existing.status === "scheduled" ? "schedule" : "draft");
   if (action === "draft") {
     assertDraftHasContent(fields);
     return persist(req, existing, fields, "draft");
   }
-  await assertReady(req.user.id, fields, media);
+  await assertReady(req.user.id, fields, media, thumbnail);
   const times = action === "schedule" ? scheduleTimes(fields.platforms, input) : null;
   return persist(req, existing, fields, action, times);
 }
@@ -237,6 +251,7 @@ async function duplicate(req, id) {
     description: p.description,
     hashtags: p.hashtags,
     mediaId: p.mediaId,
+    thumbnailMediaId: p.thumbnailMediaId,
     tone: p.tone,
     platforms: p.platforms,
     platformContent: p.platformContent,

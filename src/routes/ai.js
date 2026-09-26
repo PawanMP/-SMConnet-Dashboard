@@ -48,6 +48,25 @@ router.post(
   })
 );
 
+const thumbnailSchema = z
+  .object({
+    title: z.string().trim().max(255).optional().default(""),
+    context: z.string().trim().max(1000, "Context must be at most 1,000 characters.").optional().default(""),
+    tone: z.enum(ai.TONES).optional(),
+  })
+  .strict();
+
+router.post(
+  "/thumbnail",
+  aiLimiter,
+  body(thumbnailSchema),
+  h(async (req, res) => {
+    const result = await ai.generateThumbnail(req.user.id, req.body);
+    await activity.log(req, "ai.thumbnail", { details: { provider: result.provider } });
+    res.json({ success: true, ...result });
+  })
+);
+
 router.post(
   "/rewrite",
   aiLimiter,

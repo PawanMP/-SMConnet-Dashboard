@@ -1,6 +1,7 @@
 // YouTube via Google OAuth 2.0 and the YouTube Data API v3 (resumable uploads).
 const config = require("../../config");
 const http = require("../../lib/http");
+const logger = require("../../lib/logger");
 const { PlatformError, toPlatformError } = require("../../lib/errors");
 const mediaService = require("../media");
 const { redirectUri, expiresAt, qs } = require("./common");
@@ -49,6 +50,24 @@ function tagsWithinLimit(tags) {
     total += cost;
   }
   return out;
+}
+
+// Sets a custom thumbnail. Requires the channel to be phone-verified, so a
+// failure here is logged and swallowed rather than failing the whole publish.
+async function setThumbnail(accessToken, videoId, thumbnail) {
+  try {
+    const buffer = await mediaService.readBuffer(thumbnail);
+    await call(() =>
+      http.post(`https://www.googleapis.com/upload/youtube/v3/thumbnails/set?${qs({ videoId })}`, buffer, {
+        headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": thumbnail.mime_type || "image/jpeg" },
+        maxBodyLength: Infinity,
+        maxContentLength: Infinity,
+        timeout: 60000,
+      })
+    );
+  } catch (err) {
+    logger.warn("Failed to set YouTube thumbnail", { videoId, err: err.message || err });
+  }
 }
 
 module.exports = {
@@ -120,15 +139,16 @@ module.exports = {
 
   fetchProfile: ({ accessToken }) => channel(accessToken),
 
-  validate(content, media) {
+  validate(content, media, meta, thumbnail) {
     const errors = [];
     if (!media || media.resource_type !== "video") errors.push("YouTube only accepts video uploads.");
     if (!cleanTitle(content.title)) errors.push("YouTube videos need a title.");
     if (content.description.length > 5000) errors.push("YouTube descriptions must be at most 5,000 characters.");
+    if (thumbnail && thumbnail.resource_type !== "image") errors.push("The YouTube thumbnail must be an image.");
     return errors;
   },
 
-  async publish({ tokens, content, media }) {
+  async publish({ tokens, content, media, thumbnail }) {
     const size = Number(media.size_bytes);
     const mime = media.mime_type || "video/mp4";
     const metadata = {
@@ -157,6 +177,7 @@ module.exports = {
         timeout: 900000,
       })
     );
+    if (thumbnail) await setThumbnail(tokens.accessToken, data.id, thumbnail);
     return { platformPostId: data.id, url: `https://www.youtube.com/watch?v=${data.id}` };
   },
 

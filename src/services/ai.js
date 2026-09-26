@@ -295,6 +295,49 @@ async function rewrite(userId, { platform, field, mode, currentText, context, to
   return { text, provider: engine.provider, model: engine.model, tone: useTone };
 }
 
+// Thumbnail images are generated with OpenAI's image model, regardless of
+// which provider handles text: Gemini/OpenRouter have no equivalent endpoint
+// wired up here, and vision-capable text keys can't generate images.
+const IMAGE_MODEL = "gpt-image-1";
+
+function openaiImageKey(engine) {
+  if (engine.provider === "openai" && engine.apiKey) return engine.apiKey;
+  return config.ai.openaiApiKey || null;
+}
+
+async function generateThumbnail(userId, { title, context, tone }) {
+  const engine = await resolveEngine(userId);
+  const apiKey = openaiImageKey(engine);
+  if (!apiKey) {
+    throw new AppError(503, "AI_IMAGE_NOT_CONFIGURED", "Thumbnail generation needs an OpenAI API key. Add one in AI Settings.");
+  }
+  const useTone = tone || engine.defaultTone;
+  const prompt = [
+    "Design a bold, highly clickable YouTube video thumbnail image, 16:9 landscape.",
+    title ? `Video title: "${title}".` : "",
+    context ? `The video is about: ${context}.` : "",
+    `Style: ${useTone}, vivid colors, strong contrast, a single clear focal point, cinematic lighting.`,
+    "Do not render any text, captions, watermarks or logos in the image.",
+  ]
+    .filter(Boolean)
+    .join(" ");
+  try {
+    const { data } = await http.post(
+      "https://api.openai.com/v1/images/generations",
+      { model: IMAGE_MODEL, prompt, size: "1536x1024", n: 1 },
+      { headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" }, timeout: 120000 }
+    );
+    const b64 = ((data.data || [])[0] || {}).b64_json;
+    if (!b64) throw new AppError(502, "AI_BAD_RESPONSE", "The AI did not return an image. Please try again.");
+    const buffer = Buffer.from(b64, "base64");
+    const media = await require("./media").storeGenerated(userId, buffer, { mimeType: "image/png", originalName: "ai-thumbnail.png" });
+    return { media: mediaModel.toPublic(media), provider: "openai", model: IMAGE_MODEL };
+  } catch (err) {
+    if (err instanceof AppError) throw err;
+    throw aiError("openai", err);
+  }
+}
+
 // Verifies a key (the one being entered, or the stored one) with a cheap call.
 async function testKey(userId, { apiKey, provider, model }) {
   const engine = await resolveEngine(userId);
@@ -316,4 +359,4 @@ async function testKey(userId, { apiKey, provider, model }) {
   return { ok: true, provider: e.provider, model: e.model, source: apiKey ? "entered" : e.source };
 }
 
-module.exports = { TONES, MODES, FIELDS, PLATFORM_RULES, PROVIDERS, PROVIDER_LABEL, status, generate, rewrite, testKey, resolveEngine };
+module.exports = { TONES, MODES, FIELDS, PLATFORM_RULES, PROVIDERS, PROVIDER_LABEL, status, generate, rewrite, generateThumbnail, testKey, resolveEngine };

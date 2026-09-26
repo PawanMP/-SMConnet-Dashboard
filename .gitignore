@@ -1,6 +1,4 @@
 node_modules/
-.env
-.env.local
 .env.*.local
 # Local data: SQLite database and generated development secrets
 data/
@@ -10,3 +8,4 @@ config.json
 scheduled_posts.json
 .vercel/
 *.log
+config.bat
