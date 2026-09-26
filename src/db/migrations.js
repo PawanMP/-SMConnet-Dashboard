@@ -244,6 +244,13 @@ const migrations = [
       "CREATE INDEX idx_activity_action ON activity_logs (action, created_at)",
     ],
   },
+  {
+    version: 2,
+    name: "post thumbnails",
+    statements: [
+      "ALTER TABLE posts ADD COLUMN thumbnail_media_id {{REF}} NULL",
+    ],
+  },
 ];
 
 async function migrate(driver, logger) {

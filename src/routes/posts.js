@@ -29,6 +29,7 @@ const fields = {
   description: text(5000, "Description").optional(),
   hashtags: text(1000, "Hashtags").optional(),
   mediaId: schemas.id.nullable().optional(),
+  thumbnailMediaId: schemas.id.nullable().optional(),
   tone: z.enum(TONES).nullable().optional(),
   platforms: z
     .array(schemas.platform)

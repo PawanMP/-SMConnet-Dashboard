@@ -75,14 +75,14 @@ async function list(userId, { page = 1, pageSize = 24, type } = {}) {
 // Any post that references this media, including published history. Deleting
 // the file would leave those posts without their media record.
 async function activeReferences(mediaId) {
-  const row = await db.get("SELECT COUNT(*) AS n FROM posts WHERE media_id = ?", [mediaId]);
+  const row = await db.get("SELECT COUNT(*) AS n FROM posts WHERE media_id = ? OR thumbnail_media_id = ?", [mediaId, mediaId]);
   return Number(row.n);
 }
 
 // Media no post references, older than the cutoff: safe to delete.
 const listUnused = (olderThan, limit = 100) =>
   db.all(
-    "SELECT m.* FROM media m WHERE m.created_at < ? AND NOT EXISTS (SELECT 1 FROM posts p WHERE p.media_id = m.id) ORDER BY m.created_at LIMIT ?",
+    "SELECT m.* FROM media m WHERE m.created_at < ? AND NOT EXISTS (SELECT 1 FROM posts p WHERE p.media_id = m.id OR p.thumbnail_media_id = m.id) ORDER BY m.created_at LIMIT ?",
     [time.toDb(olderThan), limit]
   );
 

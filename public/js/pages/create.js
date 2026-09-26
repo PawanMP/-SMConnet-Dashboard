@@ -30,6 +30,8 @@ const state = {
   status: null,
   media: null,
   uploading: false,
+  thumbnail: null,
+  thumbnailUploading: false,
   platforms: new Set(),
   fields: { title: "", caption: "", description: "", hashtags: "" },
   overrides: {},
@@ -94,13 +96,16 @@ function renderMedia(progress) {
         <span class="grow"></span>
         <button type="button" class="btn btn-secondary btn-sm" id="replace-media" ${state.locked ? "disabled" : ""}>${icon("upload")}Replace</button>
         <button type="button" class="btn btn-danger-outline btn-sm" id="remove-media" ${state.locked ? "disabled" : ""}>${icon("trash")}Remove</button>
-      </div>`;
+      </div>
+      <div id="thumbnail-area"></div>`;
     $("#replace-media").addEventListener("click", () => $("#file-input").click());
     $("#remove-media").addEventListener("click", () => {
       state.media = null;
+      state.thumbnail = null;
       renderMedia();
       markDirty();
     });
+    renderThumbnail();
   } else {
     const cfg = state.mediaConfig;
     const limits = cfg ? `Images up to ${fmt.bytes(cfg.maxImageBytes)}, videos up to ${fmt.bytes(cfg.maxVideoBytes)}` : "";
@@ -214,6 +219,108 @@ async function openLibrary() {
   await pick;
 }
 
+// ── YouTube thumbnail ─────────────────────────────────────────────────────────
+function renderThumbnail() {
+  const box = $("#thumbnail-area");
+  if (!box) return;
+  const wantsThumbnail = state.platforms.has("youtube") && state.media && state.media.resourceType === "video";
+  if (!wantsThumbnail) {
+    box.innerHTML = "";
+    return;
+  }
+  if (state.thumbnailUploading) {
+    box.innerHTML = `<div class="thumbnail-box mt-12"><div class="row"><span class="spinner"></span><span class="small muted">Uploading thumbnail...</span></div></div>`;
+    return;
+  }
+  const aiReason = aiUnavailableReason();
+  if (state.thumbnail) {
+    box.innerHTML = `<div class="thumbnail-box mt-12">
+      <div class="row">
+        <img src="${esc(state.thumbnail.url)}" alt="Video thumbnail" style="width:120px;height:68px;object-fit:cover;border-radius:6px" />
+        <div class="grow small muted">Custom thumbnail for YouTube</div>
+        <button type="button" class="btn btn-soft btn-sm" id="generate-thumbnail" ${state.locked || aiReason ? "disabled" : ""} title="${esc(aiReason)}">${icon("sparkles")}Regenerate with AI</button>
+        <button type="button" class="btn btn-secondary btn-sm" id="replace-thumbnail" ${state.locked ? "disabled" : ""}>${icon("upload")}Replace</button>
+        <button type="button" class="btn btn-danger-outline btn-sm" id="remove-thumbnail" ${state.locked ? "disabled" : ""}>${icon("trash")}Remove</button>
+      </div>
+    </div>`;
+    $("#replace-thumbnail").addEventListener("click", () => $("#thumbnail-input").click());
+    $("#remove-thumbnail").addEventListener("click", () => {
+      state.thumbnail = null;
+      renderThumbnail();
+      markDirty();
+    });
+  } else {
+    box.innerHTML = `<div class="thumbnail-box mt-12">
+      <div class="row">
+        <span class="small muted grow">YouTube will use an auto-generated frame unless you add a custom thumbnail.</span>
+        <button type="button" class="btn btn-soft btn-sm" id="generate-thumbnail" ${state.locked || aiReason ? "disabled" : ""} title="${esc(aiReason)}">${icon("sparkles")}Generate with AI</button>
+        <button type="button" class="btn btn-secondary btn-sm" id="add-thumbnail" ${state.locked ? "disabled" : ""}>${icon("image")}Add thumbnail</button>
+      </div>
+    </div>`;
+    $("#add-thumbnail").addEventListener("click", () => $("#thumbnail-input").click());
+  }
+  const genBtn = $("#generate-thumbnail");
+  if (genBtn) genBtn.addEventListener("click", () => generateThumbnailAi(genBtn));
+}
+
+async function generateThumbnailAi(button) {
+  await busy(button, "Generating...", async () => {
+    try {
+      const res = await api.post("/api/ai/thumbnail", {
+        title: value("youtube", "title") || firstLine(value("youtube", "caption") || state.fields.caption),
+        context: $("#ai-context").value.trim(),
+        tone: $("#ai-tone").value,
+      });
+      state.thumbnail = res.media;
+      renderThumbnail();
+      toast("Thumbnail generated.", "success");
+      markDirty();
+    } catch (err) {
+      toastError(err, "Could not generate a thumbnail.");
+    }
+  });
+}
+
+async function uploadThumbnail(file) {
+  const cfg = state.mediaConfig;
+  if (!cfg.imageTypes.includes(file.type)) return toast("The thumbnail must be a JPG, PNG, GIF or WEBP image.", "error");
+  if (file.size > cfg.maxImageBytes) return toast(`Thumbnails must be ${fmt.bytes(cfg.maxImageBytes)} or smaller.`, "error");
+
+  state.thumbnailUploading = true;
+  renderThumbnail();
+  try {
+    let media;
+    if (cfg.directUpload) {
+      const sig = await api.post("/api/media/signature", { resourceType: "image" });
+      const form = new FormData();
+      for (const [k, v] of Object.entries(sig.fields)) form.append(k, v);
+      form.append("file", file);
+      const uploaded = await uploadWithProgress(sig.uploadUrl, form, { withCredentials: false });
+      media = (
+        await api.post("/api/media/complete", {
+          publicId: uploaded.public_id,
+          version: String(uploaded.version),
+          signature: uploaded.signature,
+          resourceType: "image",
+          originalName: file.name.slice(0, 255),
+        })
+      ).media;
+    } else {
+      const form = new FormData();
+      form.append("file", file);
+      media = (await uploadWithProgress("/api/media/upload", form, { headers: { "X-Requested-With": "fetch" } })).media;
+    }
+    state.thumbnail = media;
+    toast("Thumbnail uploaded.", "success");
+    markDirty();
+  } catch (err) {
+    toastError(err, "Thumbnail upload failed.");
+  } finally {
+    state.thumbnailUploading = false;
+    renderThumbnail();
+  }
+}
+
 // ── Platforms ─────────────────────────────────────────────────────────────────
 function platformStatus(p) {
   const a = state.accounts[p];
@@ -238,6 +345,7 @@ function renderPlatforms() {
       if (!state.platforms.has(state.tab)) state.tab = "all";
       renderTabs();
       renderPerPlatformTimes();
+      renderThumbnail();
       markDirty();
     })
   );
@@ -556,6 +664,7 @@ function payload(action) {
     description: state.fields.description,
     hashtags: state.fields.hashtags.trim(),
     mediaId: state.media ? state.media.id : null,
+    thumbnailMediaId: state.thumbnail ? state.thumbnail.id : null,
     tone: $("#ai-tone").value || null,
     platforms: list,
     platformContent,
@@ -683,6 +792,7 @@ async function loadPost(id) {
   state.status = post.status;
   const editable = post.status === "draft" || (post.status === "scheduled" && post.targets.every((t) => t.status === "scheduled"));
   state.media = post.media;
+  state.thumbnail = post.thumbnail;
   state.platforms = new Set(post.platforms);
   state.fields = { title: post.title, caption: post.caption, description: post.description, hashtags: post.hashtags };
   state.overrides = post.platformContent || {};
@@ -729,6 +839,17 @@ async function init() {
     file.value = "";
   });
   document.body.appendChild(file);
+
+  const thumbInput = document.createElement("input");
+  thumbInput.type = "file";
+  thumbInput.id = "thumbnail-input";
+  thumbInput.accept = "image/jpeg,image/png,image/gif,image/webp";
+  thumbInput.hidden = true;
+  thumbInput.addEventListener("change", () => {
+    if (thumbInput.files[0]) uploadThumbnail(thumbInput.files[0]);
+    thumbInput.value = "";
+  });
+  document.body.appendChild(thumbInput);
   $("#tz-hint").textContent = `Times are in your time zone (${localZone()}).`;
 
   const [accounts, ai, mediaCfg] = await Promise.all([

@@ -17,7 +17,7 @@ const { randomToken } = require("../lib/crypto");
 const { redact } = require("../lib/redact");
 
 // Checks everything that can be known before calling a platform: the account is connected and the content fits the platform's rules.
-async function preflight(post, platformList, media) {
+async function preflight(post, platformList, media, thumbnail) {
   const problems = [];
   for (const platform of platformList) {
     const adapter = platforms.get(platform);
@@ -30,14 +30,14 @@ async function preflight(post, platformList, media) {
       problems.push({ platform, message: `${adapter.label} needs to be reconnected (the access token expired).` });
       continue;
     }
-    for (const message of adapter.validate(content.resolve(post, platform), media, accountsModel.metadata(account))) {
+    for (const message of adapter.validate(content.resolve(post, platform), media, accountsModel.metadata(account), thumbnail)) {
       problems.push({ platform, message });
     }
   }
   return problems;
 }
 
-async function publishOne(post, target, media, trigger) {
+async function publishOne(post, target, media, trigger, thumbnail) {
   const started = Date.now();
   const attemptNo = Number(target.attempts || 0) + 1;
   const platform = target.platform;
@@ -50,11 +50,11 @@ async function publishOne(post, target, media, trigger) {
     }
     const meta = accountsModel.metadata(account);
     const resolved = content.resolve(post, platform);
-    const problems = adapter.validate(resolved, media, meta);
+    const problems = adapter.validate(resolved, media, meta, thumbnail);
     if (problems.length) throw new PlatformError(platform, `${PLATFORM_LABELS[platform]}: ${problems.join(" ")}`, { code: "INVALID_CONTENT" });
 
     const t = await tokens.getValidTokens(account);
-    const result = await adapter.publish({ account, tokens: t, content: resolved, media, meta });
+    const result = await adapter.publish({ account, tokens: t, content: resolved, media, meta, thumbnail });
     // Links are shown in the UI; only keep web URLs.
     if (result.url && !/^https?:\/\//i.test(result.url)) result.url = null;
 
@@ -118,7 +118,8 @@ async function refreshPostStatus(postId) {
 async function publishClaimed(post, claimed, trigger) {
   if (!claimed.length) return { post: await refreshPostStatus(post.id), results: [] };
   const media = post.media_id ? await mediaModel.findById(post.media_id) : null;
-  const results = await Promise.all(claimed.map((t) => publishOne(post, t, media, trigger)));
+  const thumbnail = post.thumbnail_media_id ? await mediaModel.findById(post.thumbnail_media_id) : null;
+  const results = await Promise.all(claimed.map((t) => publishOne(post, t, media, trigger, thumbnail)));
   const updated = await refreshPostStatus(post.id);
 
   await notifier.publishResult(updated, results.filter((r) => !r.willRetry), trigger);
