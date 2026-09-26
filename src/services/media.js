@@ -132,6 +132,46 @@ async function storeUpload(userId, file) {
   }
 }
 
+// Stores a server-generated image (e.g. an AI thumbnail) that never came from
+// a browser upload, so there is no multer file/path to work from.
+async function storeGenerated(userId, buffer, { mimeType = "image/png", originalName = "generated.png" } = {}) {
+  checkSize("image", buffer.length);
+  const ext = { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp" }[mimeType] || "png";
+
+  if (config.media.provider === "cloudinary") {
+    const res = await cloud().uploader.upload(`data:${mimeType};base64,${buffer.toString("base64")}`, {
+      resource_type: "image",
+      folder: `${config.cloudinary.folder}/u${userId}`,
+    });
+    return mediaModel.create(userId, {
+      provider: "cloudinary",
+      storageKey: res.public_id,
+      url: res.secure_url,
+      resourceType: "image",
+      mimeType,
+      format: res.format || ext,
+      sizeBytes: res.bytes || buffer.length,
+      width: res.width,
+      height: res.height,
+      originalName,
+    });
+  }
+
+  await fsp.mkdir(config.media.uploadDir, { recursive: true });
+  const name = `${crypto.randomBytes(16).toString("hex")}.${ext}`;
+  await fsp.writeFile(path.join(config.media.uploadDir, name), buffer);
+  return mediaModel.create(userId, {
+    provider: "local",
+    storageKey: name,
+    url: `${config.appUrl}/media/${name}`,
+    resourceType: "image",
+    mimeType,
+    format: ext,
+    sizeBytes: buffer.length,
+    originalName,
+  });
+}
+
 // ── Direct browser → Cloudinary uploads ──────────────────────────────────────
 // Large files never pass through this server (serverless request bodies are
 // capped at a few MB). The browser uploads with a short-lived signature and
@@ -249,6 +289,7 @@ module.exports = {
   sniff,
   publicConfig,
   storeUpload,
+  storeGenerated,
   createUploadSignature,
   completeDirectUpload,
   openStream,
